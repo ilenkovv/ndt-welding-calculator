@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Калькулятор стоимости НК и сварочных работ</title>
+<style>
+:root{--blue:#1463c3;--dark:#18212d;--line:#dce3ec;--bg:#f4f7fb;--green:#117a43}
+*{box-sizing:border-box} body{margin:0;font:14px/1.45 Arial,sans-serif;color:var(--dark);background:var(--bg)}
+header{background:#102a43;color:#fff;padding:22px 28px} header h1{margin:0 0 5px;font-size:23px} header p{margin:0;color:#d8e5f5}
+main{max-width:1200px;margin:22px auto;padding:0 16px;display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:20px}.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px;box-shadow:0 2px 8px #1b35501a}h2{font-size:17px;margin:0 0 15px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.full{grid-column:1/-1}label{display:block;font-weight:600;margin-bottom:5px}input,select,textarea{width:100%;padding:9px 10px;border:1px solid #bcc9d8;border-radius:6px;background:#fff;font:inherit}textarea{min-height:68px;resize:vertical}.hint{font-size:12px;color:#637185;margin-top:4px}.hint.warn{color:#9a3412}.checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.check{font-weight:400;border:1px solid var(--line);border-radius:6px;padding:8px;display:flex;gap:8px;align-items:center}.check input{width:auto}.check.is-disabled{opacity:.55;pointer-events:none}.methods-block.is-disabled .checks{opacity:.55}.result{position:sticky;top:15px}.price{font-size:29px;font-weight:700;color:var(--green);margin:9px 0 16px}.row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #e9edf2;padding:8px 0}.row span:last-child{font-weight:600;text-align:right}button{width:100%;border:0;border-radius:7px;padding:11px 14px;margin-top:12px;background:var(--blue);color:#fff;font-weight:700;cursor:pointer}button:hover{filter:brightness(.92)}button.secondary{background:#687789}.note{font-size:12px;color:#637185;margin-top:14px}@media(max-width:850px){main{grid-template-columns:1fr}.result{position:static}.grid{grid-template-columns:1fr}.checks{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><h1>Калькулятор стоимости НК и сварочных работ</h1><p>Предварительный расчёт для карточки сделки и коммерческого предложения</p></header>
+<main>
+<section class="card">
+<h2>Параметры обращения</h2>
+<div class="grid">
+<div><label for="client">Клиент / организация</label><input id="client" placeholder="Наименование клиента"></div>
+<div><label for="contact">Контактное лицо</label><input id="contact" placeholder="ФИО, телефон"></div>
+<div><label for="workType">Тип работ</label><select id="workType"><option value="ndt">Неразрушающий контроль</option><option value="welding">Сварочные работы</option><option value="complex">Сварка + НК</option></select></div>
+<div><label for="object">Объект контроля</label><select id="object"><option value="pipe">Трубопровод</option><option value="tank">Резервуар / ёмкость</option><option value="metal">Металлоконструкция</option><option value="vessel">Сосуд / котёл</option><option value="other">Другое</option></select><div class="hint">На стоимость не влияет — только для карточки сделки и КП.</div></div>
+<div><label for="location">Место работ</label><input id="location" placeholder="Город, объект"></div>
+<div><label for="distance">Расстояние от базы, км</label><input id="distance" type="number" min="0" value="0"><div class="hint">Первые 30 км без доплаты, далее 35 ₽/км.</div></div>
+<div><label for="diameter">Диаметр, мм</label><input id="diameter" type="number" min="0" value="108"></div>
+<div><label for="thickness">Толщина стенки, мм</label><input id="thickness" type="number" min="0" step="0.1" value="6"></div>
+<div><label for="joints">Количество стыков</label><input id="joints" type="number" min="0" value="0"></div>
+<div><label for="meters">Длина шва, п.м.</label><input id="meters" type="number" min="0" step="0.1" value="0"></div>
+<div><label for="points">Количество точек / снимков</label><input id="points" type="number" min="0" value="0"><div class="hint">Учитывается для РК и УЗ толщинометрии; на сварку не влияет.</div></div>
+<div><label for="urgency">Срочность</label><select id="urgency"><option value="1">Стандартный срок</option><option value="1.3">Срочно: +30%</option><option value="1.5">Экстренно: +50%</option></select></div>
+<div class="full methods-block" id="methodsBlock"><label>Методы НК</label><div class="checks">
+<label class="check"><input class="method" type="checkbox" value="vik">ВИК — визуальный и измерительный</label>
+<label class="check"><input class="method" type="checkbox" value="uzk">УЗК — ультразвуковой</label>
+<label class="check"><input class="method" type="checkbox" value="rk">РК — радиографический</label>
+<label class="check"><input class="method" type="checkbox" value="pvk">ПВК — капиллярный</label>
+<label class="check"><input class="method" type="checkbox" value="mk">МК — магнитопорошковый</label>
+<label class="check"><input class="method" type="checkbox" value="thick">УЗ толщинометрия</label>
+</div><div class="hint" id="methodsHint">Можно выбрать несколько методов. Базовые ставки и коэффициенты — в объекте tariffs и CFG.</div></div>
+<div><label for="access">Условия доступа</label><select id="access"><option value="1">Нормальные</option><option value="1.15">Стеснённые: +15%</option><option value="1.25">Высота / сложный доступ: +25%</option><option value="1.4">Опасные / особо сложные: +40%</option></select></div>
+<div><label for="travel">Командировка / проживание, руб.</label><input id="travel" type="number" min="0" value="0"></div>
+<div class="full"><label for="comment">Комментарий</label><textarea id="comment" placeholder="Марка стали, требования НТД, график, особенности доступа и другие условия"></textarea></div>
+</div>
+</section>
+<aside class="card result">
+<h2>Расчётная стоимость</h2><div class="price" id="total">0 ₽</div>
+<div class="row"><span>Стоимость работ</span><span id="workSum">0 ₽</span></div>
+<div class="row" id="ndtRow" hidden><span>в т.ч. НК</span><span id="ndtSum">0 ₽</span></div>
+<div class="row" id="weldRow" hidden><span>в т.ч. сварка</span><span id="weldSum">0 ₽</span></div>
+<div class="row"><span>Коэффициент толщины</span><span id="thicknessK">× 1,00</span></div>
+<div class="row"><span>Коэффициент диаметра</span><span id="diameterK">× 1,00</span></div>
+<div class="row"><span>Условия / срочность</span><span id="conditionsK">× 1,00</span></div>
+<div class="row"><span>Логистика</span><span id="logistics">0 ₽</span></div>
+<button type="button" id="copy">Скопировать данные для сделки</button>
+<button type="button" class="secondary" id="proposal">Сформировать КП для печати</button>
+<p class="note">Расчёт предварительный. Перед отправкой клиенту проверьте НТД, доступность, объём, состав бригады и фактическую логистику. Коэффициенты толщины и диаметра умножают всю стоимость работ (НК и сварку).</p>
+</aside>
+</main>
+<script>
+/** Тарифы НК: ключи = value чекбоксов .method */
+const tariffs={
+  vik:{name:'ВИК',joint:250,meter:150,point:0},
+  uzk:{name:'УЗК',joint:700,meter:650,point:0},
+  rk:{name:'РК',joint:1500,meter:1300,point:900},
+  pvk:{name:'ПВК',joint:600,meter:500,point:0},
+  mk:{name:'МК',joint:650,meter:550,point:0},
+  thick:{name:'УЗ толщинометрия',joint:0,meter:0,point:180}
+};
+
+/** Константы расчёта — единственный источник чисел вне tariffs */
+const CFG={
+  WELD_JOINT:1200,
+  WELD_METER:950,
+  FREE_KM:30,
+  KM_RATE:35,
+  WORK_TYPES:['ndt','welding','complex']
+};
+
+const n=id=>document.getElementById(id);
+
+/** Число ≥0; NaN / Infinity / отрицательные → 0 */
+function safeNum(v){
+  const x=typeof v==='number'?v:parseFloat(v);
+  if(!Number.isFinite(x)||x<0) return 0;
+  return x;
+}
+function num(id){
+  const el=n(id);
+  return el?safeNum(el.value):0;
+}
+/** Коэффициент access/urgency: битое значение → fallback (обычно 1) */
+function factor(id, fallback=1){
+  const el=n(id);
+  const x=el?safeNum(el.value):0;
+  return x>0?x:fallback;
+}
+const rub=v=>new Intl.NumberFormat('ru-RU',{maximumFractionDigits:0}).format(Math.round(Number.isFinite(v)?v:0))+' ₽';
+const escapeHtml=s=>String(s)
+  .replace(/&/g,'&amp;')
+  .replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;')
+  .replace(/'/g,'&#39;');
+
+function coeffThickness(t){
+  t=safeNum(t);
+  return t<=10?1:t<=20?1.15:t<=30?1.3:t<=50?1.5:1.75;
+}
+function coeffDiameter(d){
+  d=safeNum(d);
+  return d<=108?1:d<=219?1.08:d<=426?1.18:d<=630?1.3:1.45;
+}
+
+function getWorkType(){
+  const v=n('workType')?.value;
+  return CFG.WORK_TYPES.includes(v)?v:'ndt';
+}
+
+function checkedMethodKeys(){
+  return [...document.querySelectorAll('.method:checked')]
+    .map(el=>el.value)
+    .filter(key=>Object.prototype.hasOwnProperty.call(tariffs,key));
+}
+
+function syncMethodsUi(workType){
+  const weldingOnly=workType==='welding';
+  const block=n('methodsBlock');
+  block.classList.toggle('is-disabled',weldingOnly);
+  document.querySelectorAll('.method').forEach(el=>{
+    el.disabled=weldingOnly;
+    el.closest('.check')?.classList.toggle('is-disabled',weldingOnly);
+  });
+}
+
+function workScopeLabel(workType, methodNames){
+  if(workType==='welding') return 'Сварка';
+  if(workType==='ndt') return methodNames.length?methodNames.join(', '):'не выбраны';
+  if(workType==='complex'){
+    const ndtPart=methodNames.length?methodNames.join(', '):'НК не выбран';
+    return 'Сварка + '+ndtPart;
+  }
+  return methodNames.length?methodNames.join(', '):'не выбраны';
+}
+
+function updateMethodsHint(workType, methodNames, ndtBase, weldBase){
+  const hint=n('methodsHint');
+  const set=(text, warn)=>{
+    hint.textContent=text;
+    hint.classList.toggle('warn',!!warn);
+  };
+
+  if(workType==='welding'){
+    set(
+      weldBase===0
+        ? 'Укажите стыки и/или п.м. шва. Методы НК для этого типа не учитываются.'
+        : 'Для типа «Сварочные работы» методы НК не учитываются в расчёте и в выгрузке.',
+      weldBase===0
+    );
+    return;
+  }
+
+  if(methodNames.length===0){
+    if(workType==='ndt'){
+      set('Выберите хотя бы один метод НК — иначе в стоимости работ будет только логистика (если указана).', true);
+    }else{
+      set('Для «Сварка + НК» выберите методы контроля, иначе в расчёт попадёт только сварка.', true);
+    }
+    return;
+  }
+
+  if(ndtBase===0){
+    set('Методы выбраны, но объём для них нулевой: для ВИК/УЗК/ПВК/МК нужны стыки или п.м.; для РК — также снимки; для толщинометрии — точки.', true);
+    return;
+  }
+
+  set('Можно выбрать несколько методов. Базовые ставки и коэффициенты — в объекте tariffs и CFG.', false);
+}
+
+function calculate(){
+  const workType=getWorkType();
+  syncMethodsUi(workType);
+
+  const joints=num('joints');
+  const meters=num('meters');
+  const points=num('points');
+  const d=num('diameter');
+  const t=num('thickness');
+  const access=factor('access',1);
+  const urgency=factor('urgency',1);
+
+  const methodKeys=workType==='welding'?[]:checkedMethodKeys();
+  let ndtBase=0;
+  const methodNames=[];
+
+  if(workType!=='welding'){
+    for(const key of methodKeys){
+      const a=tariffs[key];
+      ndtBase+=a.joint*joints+a.meter*meters+a.point*points;
+      methodNames.push(a.name);
+    }
+  }
+
+  let weldBase=0;
+  if(workType==='welding'||workType==='complex'){
+    weldBase=joints*CFG.WELD_JOINT+meters*CFG.WELD_METER;
+  }
+
+  const base=ndtBase+weldBase;
+  const kt=coeffThickness(t);
+  const kd=coeffDiameter(d);
+  const kc=access*urgency;
+  const logistics=num('travel')+Math.max(0,num('distance')-CFG.FREE_KM)*CFG.KM_RATE;
+  const total=base*kt*kd*kc+logistics;
+  const methods=workScopeLabel(workType, methodNames);
+
+  n('total').textContent=rub(total);
+  n('workSum').textContent=rub(base);
+  n('ndtSum').textContent=rub(ndtBase);
+  n('weldSum').textContent=rub(weldBase);
+  n('ndtRow').hidden=workType==='welding';
+  n('weldRow').hidden=workType==='ndt';
+  n('thicknessK').textContent='× '+kt.toFixed(2).replace('.',',');
+  n('diameterK').textContent='× '+kd.toFixed(2).replace('.',',');
+  n('conditionsK').textContent='× '+kc.toFixed(2).replace('.',',');
+  n('logistics').textContent=rub(logistics);
+
+  updateMethodsHint(workType, methodNames, ndtBase, weldBase);
+
+  return {total,base,ndtBase,weldBase,kt,kd,kc,logistics,methods,workType,methodNames};
+}
+
+function dataText(){
+  const r=calculate();
+  const weldLine=(r.workType==='welding'||r.workType==='complex')
+    ? `\nСварка: ${num('joints')} стыков; ${num('meters')} п.м.`
+    : '';
+  const ndtLine=(r.workType==='ndt'||r.workType==='complex')
+    ? `\nНК: ${r.methodNames.length?r.methodNames.join(', '):'не выбраны'}; база НК ${rub(r.ndtBase)}`
+    : '';
+  return `РАСЧЁТ НК И СВАРОЧНЫХ РАБОТ
+Клиент: ${n('client').value||'—'}
+Контакт: ${n('contact').value||'—'}
+Тип работ: ${n('workType').selectedOptions[0].text}
+Объект: ${n('object').selectedOptions[0].text}
+Место: ${n('location').value||'—'}
+Состав работ: ${r.methods}${weldLine}${ndtLine}
+Диаметр: ${num('diameter')} мм; толщина: ${num('thickness')} мм
+Объём: ${num('joints')} стыков; ${num('meters')} п.м.; ${num('points')} точек/снимков
+Коэфф.: толщина ×${r.kt.toFixed(2)}, диаметр ×${r.kd.toFixed(2)}, условия ×${r.kc.toFixed(2)}
+Логистика: ${rub(r.logistics)}
+Расчётная стоимость: ${rub(r.total)}
+Комментарий: ${n('comment').value||'—'}`;
+}
+
+let copyTimer=null;
+document.querySelectorAll('input,select,textarea').forEach(el=>{
+  el.addEventListener('input',calculate);
+  el.addEventListener('change',calculate);
+});
+
+n('copy').addEventListener('click',async()=>{
+  try{
+    await navigator.clipboard.writeText(dataText());
+    n('copy').textContent='Данные скопированы';
+    if(copyTimer) clearTimeout(copyTimer);
+    copyTimer=setTimeout(()=>{n('copy').textContent='Скопировать данные для сделки';copyTimer=null},1500);
+  }catch(e){
+    alert(dataText());
+  }
+});
+
+n('proposal').addEventListener('click',()=>{
+  const r=calculate();
+  const weldRowHtml=(r.workType==='welding'||r.workType==='complex')
+    ? `<tr><td>Сварка</td><td>${num('joints')} стыков; ${num('meters')} п.м.; база ${escapeHtml(rub(r.weldBase))}</td></tr>`
+    : '';
+  const ndtRowHtml=(r.workType==='ndt'||r.workType==='complex')
+    ? `<tr><td>НК</td><td>${escapeHtml(r.methodNames.length?r.methodNames.join(', '):'не выбраны')}; база ${escapeHtml(rub(r.ndtBase))}</td></tr>`
+    : '';
+  const html=`<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Коммерческое предложение</title><style>body{font:14px Arial;max-width:800px;margin:45px auto;line-height:1.5}h1{font-size:22px}table{border-collapse:collapse;width:100%;margin:20px 0}td{border:1px solid #bbb;padding:8px}.total{font-size:20px;font-weight:bold}</style></head><body><h1>Коммерческое предложение</h1><p>Предлагаем выполнить работы по неразрушающему контролю / сварочным работам.</p><table><tr><td>Заказчик</td><td>${escapeHtml(n('client').value||'—')}</td></tr><tr><td>Контакт</td><td>${escapeHtml(n('contact').value||'—')}</td></tr><tr><td>Тип работ</td><td>${escapeHtml(n('workType').selectedOptions[0].text)}</td></tr><tr><td>Объект</td><td>${escapeHtml(n('object').selectedOptions[0].text)}</td></tr><tr><td>Место выполнения</td><td>${escapeHtml(n('location').value||'—')}</td></tr><tr><td>Состав работ</td><td>${escapeHtml(r.methods)}</td></tr>${weldRowHtml}${ndtRowHtml}<tr><td>Параметры</td><td>Ø ${num('diameter')} мм, толщина ${num('thickness')} мм; ${num('joints')} стыков, ${num('meters')} п.м., ${num('points')} точек/снимков</td></tr><tr><td>Условия</td><td>${escapeHtml(n('access').selectedOptions[0].text)}; ${escapeHtml(n('urgency').selectedOptions[0].text)}</td></tr><tr><td>Коэффициенты</td><td>толщина ×${r.kt.toFixed(2).replace('.',',')}; диаметр ×${r.kd.toFixed(2).replace('.',',')}; условия ×${r.kc.toFixed(2).replace('.',',')}</td></tr><tr><td>Логистика</td><td>${escapeHtml(rub(r.logistics))}</td></tr></table><p class="total">Расчётная стоимость: ${escapeHtml(rub(r.total))}</p><p>Стоимость является предварительной и подлежит уточнению после изучения технического задания, НТД, фактических объёмов и условий доступа.</p><p>Комментарий: ${escapeHtml(n('comment').value||'—')}</p><script>window.print()<\/script></body></html>`;
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const w=window.open(url,'_blank');
+  if(!w){
+    URL.revokeObjectURL(url);
+    alert('Разрешите всплывающие окна, чтобы открыть коммерческое предложение.');
+    return;
+  }
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+});
+
+calculate();
+</script>
+</body>
+</html>
