@@ -5,288 +5,426 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Калькулятор стоимости НК и сварочных работ</title>
 <style>
-:root{--blue:#1463c3;--dark:#18212d;--line:#dce3ec;--bg:#f4f7fb;--green:#117a43}
-*{box-sizing:border-box} body{margin:0;font:14px/1.45 Arial,sans-serif;color:var(--dark);background:var(--bg)}
-header{background:#102a43;color:#fff;padding:22px 28px} header h1{margin:0 0 5px;font-size:23px} header p{margin:0;color:#d8e5f5}
-main{max-width:1200px;margin:22px auto;padding:0 16px;display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:20px}.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px;box-shadow:0 2px 8px #1b35501a}h2{font-size:17px;margin:0 0 15px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.full{grid-column:1/-1}label{display:block;font-weight:600;margin-bottom:5px}input,select,textarea{width:100%;padding:9px 10px;border:1px solid #bcc9d8;border-radius:6px;background:#fff;font:inherit}textarea{min-height:68px;resize:vertical}.hint{font-size:12px;color:#637185;margin-top:4px}.hint.warn{color:#9a3412}.checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.check{font-weight:400;border:1px solid var(--line);border-radius:6px;padding:8px;display:flex;gap:8px;align-items:center}.check input{width:auto}.check.is-disabled{opacity:.55;pointer-events:none}.methods-block.is-disabled .checks{opacity:.55}.result{position:sticky;top:15px}.price{font-size:29px;font-weight:700;color:var(--green);margin:9px 0 16px}.row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #e9edf2;padding:8px 0}.row span:last-child{font-weight:600;text-align:right}button{width:100%;border:0;border-radius:7px;padding:11px 14px;margin-top:12px;background:var(--blue);color:#fff;font-weight:700;cursor:pointer}button:hover{filter:brightness(.92)}button.secondary{background:#687789}.note{font-size:12px;color:#637185;margin-top:14px}@media(max-width:850px){main{grid-template-columns:1fr}.result{position:static}.grid{grid-template-columns:1fr}.checks{grid-template-columns:1fr}}
+:root{
+  --blue:#1463c3;--dark:#18212d;--line:#dce3ec;--bg:#eef3f8;--green:#117a43;--card:#fff;--muted:#637185;--warn:#9a3412;
+}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--dark);background:var(--bg)}
+header{background:linear-gradient(135deg,#0f2740,#163a5f);color:#fff;padding:20px 18px}
+header h1{margin:0 0 6px;font-size:1.35rem}
+header p{margin:0;color:#d5e4f5;font-size:.92rem}
+main{max-width:1100px;margin:16px auto;padding:0 12px 28px;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 2px 10px #1b355012}
+h2{font-size:1.05rem;margin:0 0 12px}
+.section{margin:0 0 18px;padding-top:14px;border-top:1px solid var(--line)}
+.section:first-child{margin-top:0;padding-top:0;border-top:0}
+.section h3{margin:0 0 10px;font-size:.95rem;color:#243447}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.full{grid-column:1/-1}
+label{display:block;font-weight:600;margin-bottom:5px;font-size:.92rem}
+input,select,textarea{width:100%;padding:10px;border:1px solid #bcc9d8;border-radius:8px;background:#fff;font:inherit}
+textarea{min-height:72px;resize:vertical}
+.hint{font-size:.78rem;color:var(--muted);margin-top:4px}
+.hint.warn{color:var(--warn);font-weight:600}
+.checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.check{font-weight:400;border:1px solid var(--line);border-radius:8px;padding:9px;display:flex;gap:8px;align-items:flex-start}
+.check input{width:auto;margin-top:3px}
+.dep-hidden{display:none!important}
+.dep-dim{opacity:.55}
+.result{position:sticky;top:12px;align-self:start}
+.price{font-size:1.85rem;font-weight:800;color:var(--green);margin:4px 0 12px}
+.row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #e9edf2;padding:8px 0;font-size:.92rem}
+.row span:last-child{font-weight:700;text-align:right}
+button{width:100%;border:0;border-radius:8px;padding:12px 14px;margin-top:10px;background:var(--blue);color:#fff;font-weight:700;cursor:pointer;font:inherit}
+button:hover{filter:brightness(.94)}
+button.secondary{background:#687789}
+.note{font-size:.78rem;color:var(--muted);margin-top:12px}
+.badge{display:inline-block;font-size:.72rem;font-weight:700;padding:3px 8px;border-radius:999px;background:#e8f1fb;color:#1a4f8c;margin-bottom:8px}
+@media(max-width:850px){
+  main{grid-template-columns:1fr}
+  .result{position:static}
+  .grid,.checks{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
-<header><h1>Калькулятор стоимости НК и сварочных работ</h1><p>Предварительный расчёт для карточки сделки и коммерческого предложения</p></header>
+<header>
+  <h1>Калькулятор стоимости НК и сварочных работ</h1>
+  <p>Предварительный расчёт для сделки и коммерческого предложения</p>
+</header>
 <main>
-<section class="card">
-<h2>Параметры обращения</h2>
-<div class="grid">
-<div><label for="client">Клиент / организация</label><input id="client" placeholder="Наименование клиента"></div>
-<div><label for="contact">Контактное лицо</label><input id="contact" placeholder="ФИО, телефон"></div>
-<div><label for="workType">Тип работ</label><select id="workType"><option value="ndt">Неразрушающий контроль</option><option value="welding">Сварочные работы</option><option value="complex">Сварка + НК</option></select></div>
-<div><label for="object">Объект контроля</label><select id="object"><option value="pipe">Трубопровод</option><option value="tank">Резервуар / ёмкость</option><option value="metal">Металлоконструкция</option><option value="vessel">Сосуд / котёл</option><option value="other">Другое</option></select><div class="hint">На стоимость не влияет — только для карточки сделки и КП.</div></div>
-<div><label for="location">Место работ</label><input id="location" placeholder="Город, объект"></div>
-<div><label for="distance">Расстояние от базы, км</label><input id="distance" type="number" min="0" value="0"><div class="hint">Первые 30 км без доплаты, далее 35 ₽/км.</div></div>
-<div><label for="diameter">Диаметр, мм</label><input id="diameter" type="number" min="0" value="108"></div>
-<div><label for="thickness">Толщина стенки, мм</label><input id="thickness" type="number" min="0" step="0.1" value="6"></div>
-<div><label for="joints">Количество стыков</label><input id="joints" type="number" min="0" value="0"></div>
-<div><label for="meters">Длина шва, п.м.</label><input id="meters" type="number" min="0" step="0.1" value="0"></div>
-<div><label for="points">Количество точек / снимков</label><input id="points" type="number" min="0" value="0"><div class="hint">Учитывается для РК и УЗ толщинометрии; на сварку не влияет.</div></div>
-<div><label for="urgency">Срочность</label><select id="urgency"><option value="1">Стандартный срок</option><option value="1.3">Срочно: +30%</option><option value="1.5">Экстренно: +50%</option></select></div>
-<div class="full methods-block" id="methodsBlock"><label>Методы НК</label><div class="checks">
-<label class="check"><input class="method" type="checkbox" value="vik">ВИК — визуальный и измерительный</label>
-<label class="check"><input class="method" type="checkbox" value="uzk">УЗК — ультразвуковой</label>
-<label class="check"><input class="method" type="checkbox" value="rk">РК — радиографический</label>
-<label class="check"><input class="method" type="checkbox" value="pvk">ПВК — капиллярный</label>
-<label class="check"><input class="method" type="checkbox" value="mk">МК — магнитопорошковый</label>
-<label class="check"><input class="method" type="checkbox" value="thick">УЗ толщинометрия</label>
-</div><div class="hint" id="methodsHint">Можно выбрать несколько методов. Базовые ставки и коэффициенты — в объекте tariffs и CFG.</div></div>
-<div><label for="access">Условия доступа</label><select id="access"><option value="1">Нормальные</option><option value="1.15">Стеснённые: +15%</option><option value="1.25">Высота / сложный доступ: +25%</option><option value="1.4">Опасные / особо сложные: +40%</option></select></div>
-<div><label for="travel">Командировка / проживание, руб.</label><input id="travel" type="number" min="0" value="0"></div>
-<div class="full"><label for="comment">Комментарий</label><textarea id="comment" placeholder="Марка стали, требования НТД, график, особенности доступа и другие условия"></textarea></div>
-</div>
+<section class="card" id="formCard">
+  <h2>Параметры</h2>
+
+  <div class="section">
+    <h3>1. Клиент</h3>
+    <div class="grid">
+      <div><label for="client">Клиент / организация</label><input id="client" placeholder="Наименование"></div>
+      <div><label for="contact">Контакт</label><input id="contact" placeholder="ФИО, телефон"></div>
+      <div class="full"><label for="location">Место работ</label><input id="location" placeholder="Город, объект"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>2. Тип работ и объект</h3>
+    <div class="grid">
+      <div>
+        <label for="workType">Тип работ</label>
+        <select id="workType">
+          <option value="ndt">Только НК</option>
+          <option value="welding">Только сварка</option>
+          <option value="complex">Сварка + НК</option>
+        </select>
+        <div class="hint" id="workTypeHint">От типа работ зависят доступные поля ниже.</div>
+      </div>
+      <div>
+        <label for="object">Объект</label>
+        <select id="object">
+          <option value="pipe">Трубопровод</option>
+          <option value="tank">Резервуар / ёмкость</option>
+          <option value="metal">Металлоконструкция</option>
+          <option value="vessel">Сосуд / котёл</option>
+          <option value="other">Другое</option>
+        </select>
+        <div class="hint">На цену не влияет — только для КП.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="volumeSection">
+    <h3>3. Объём работ</h3>
+    <div class="grid">
+      <div id="wrapJoints"><label for="joints">Стыки, шт.</label><input id="joints" type="number" min="0" step="1" value="0"></div>
+      <div id="wrapMeters"><label for="meters">Длина шва, п.м.</label><input id="meters" type="number" min="0" step="0.1" value="0"></div>
+      <div id="wrapPoints" class="full">
+        <label for="points">Точки / снимки, шт.</label>
+        <input id="points" type="number" min="0" step="1" value="0">
+        <div class="hint">Нужны для РК и УЗ-толщинометрии.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="geometrySection">
+    <h3>4. Геометрия (коэффициенты)</h3>
+    <div class="grid">
+      <div id="wrapDiameter"><label for="diameter">Диаметр, мм</label><input id="diameter" type="number" min="0" value="108"></div>
+      <div id="wrapThickness"><label for="thickness">Толщина стенки, мм</label><input id="thickness" type="number" min="0" step="0.1" value="6"></div>
+    </div>
+    <div class="hint">Коэффициенты умножают стоимость работ (не логистику).</div>
+  </div>
+
+  <div class="section" id="methodsSection">
+    <h3>5. Методы НК</h3>
+    <div class="badge" id="methodsBadge">Активны для НК</div>
+    <div class="checks" id="methodsList">
+      <label class="check"><input class="method" type="checkbox" value="vik">ВИК</label>
+      <label class="check"><input class="method" type="checkbox" value="uzk">УЗК</label>
+      <label class="check"><input class="method" type="checkbox" value="rk">РК</label>
+      <label class="check"><input class="method" type="checkbox" value="pvk">ПВК</label>
+      <label class="check"><input class="method" type="checkbox" value="mk">МК</label>
+      <label class="check"><input class="method" type="checkbox" value="thick">УЗ толщинометрия</label>
+    </div>
+    <div class="hint" id="methodsHint">Выберите один или несколько методов.</div>
+  </div>
+
+  <div class="section">
+    <h3>6. Условия и логистика</h3>
+    <div class="grid">
+      <div>
+        <label for="urgency">Срочность</label>
+        <select id="urgency">
+          <option value="1">Стандарт</option>
+          <option value="1.3">Срочно (+30%)</option>
+          <option value="1.5">Экстренно (+50%)</option>
+        </select>
+      </div>
+      <div>
+        <label for="access">Доступ</label>
+        <select id="access">
+          <option value="1">Нормальный</option>
+          <option value="1.15">Стеснённый (+15%)</option>
+          <option value="1.25">Высота / сложный (+25%)</option>
+          <option value="1.4">Опасный (+40%)</option>
+        </select>
+      </div>
+      <div>
+        <label for="distance">Расстояние от базы, км</label>
+        <input id="distance" type="number" min="0" value="0">
+        <div class="hint">Первые 30 км бесплатно, далее 35 ₽/км.</div>
+      </div>
+      <div>
+        <label for="travel">Командировка / проживание, ₽</label>
+        <input id="travel" type="number" min="0" value="0">
+      </div>
+      <div class="full">
+        <label for="comment">Комментарий</label>
+        <textarea id="comment" placeholder="Марка стали, НТД, график, особенности"></textarea>
+      </div>
+    </div>
+  </div>
 </section>
+
 <aside class="card result">
-<h2>Расчётная стоимость</h2><div class="price" id="total">0 ₽</div>
-<div class="row"><span>Стоимость работ</span><span id="workSum">0 ₽</span></div>
-<div class="row" id="ndtRow" hidden><span>в т.ч. НК</span><span id="ndtSum">0 ₽</span></div>
-<div class="row" id="weldRow" hidden><span>в т.ч. сварка</span><span id="weldSum">0 ₽</span></div>
-<div class="row"><span>Коэффициент толщины</span><span id="thicknessK">× 1,00</span></div>
-<div class="row"><span>Коэффициент диаметра</span><span id="diameterK">× 1,00</span></div>
-<div class="row"><span>Условия / срочность</span><span id="conditionsK">× 1,00</span></div>
-<div class="row"><span>Логистика</span><span id="logistics">0 ₽</span></div>
-<button type="button" id="copy">Скопировать данные для сделки</button>
-<button type="button" class="secondary" id="proposal">Сформировать КП для печати</button>
-<p class="note">Расчёт предварительный. Перед отправкой клиенту проверьте НТД, доступность, объём, состав бригады и фактическую логистику. Коэффициенты толщины и диаметра умножают всю стоимость работ (НК и сварку).</p>
+  <h2>Итог</h2>
+  <div class="price" id="total">0 ₽</div>
+  <div class="row"><span>Работы</span><span id="workSum">0 ₽</span></div>
+  <div class="row" id="ndtRow"><span>в т.ч. НК</span><span id="ndtSum">0 ₽</span></div>
+  <div class="row" id="weldRow"><span>в т.ч. сварка</span><span id="weldSum">0 ₽</span></div>
+  <div class="row"><span>Коэфф. толщины</span><span id="thicknessK">× 1,00</span></div>
+  <div class="row"><span>Коэфф. диаметра</span><span id="diameterK">× 1,00</span></div>
+  <div class="row"><span>Срочность × доступ</span><span id="conditionsK">× 1,00</span></div>
+  <div class="row"><span>Логистика</span><span id="logistics">0 ₽</span></div>
+  <button type="button" id="copy">Скопировать для сделки</button>
+  <button type="button" class="secondary" id="proposal">КП для печати</button>
+  <p class="note">Предварительный расчёт. Перед КП проверьте НТД, объём и логистику.</p>
 </aside>
 </main>
+
 <script>
-/** Тарифы НК: ключи = value чекбоксов .method */
-const tariffs={
-  vik:{name:'ВИК',joint:250,meter:150,point:0},
-  uzk:{name:'УЗК',joint:700,meter:650,point:0},
-  rk:{name:'РК',joint:1500,meter:1300,point:900},
-  pvk:{name:'ПВК',joint:600,meter:500,point:0},
-  mk:{name:'МК',joint:650,meter:550,point:0},
-  thick:{name:'УЗ толщинометрия',joint:0,meter:0,point:180}
+const tariffs = {
+  vik:   { name: 'ВИК', joint: 250, meter: 150, point: 0 },
+  uzk:   { name: 'УЗК', joint: 700, meter: 650, point: 0 },
+  rk:    { name: 'РК', joint: 1500, meter: 1300, point: 900 },
+  pvk:   { name: 'ПВК', joint: 600, meter: 500, point: 0 },
+  mk:    { name: 'МК', joint: 650, meter: 550, point: 0 },
+  thick: { name: 'УЗ толщинометрия', joint: 0, meter: 0, point: 180 }
 };
 
-/** Константы расчёта — единственный источник чисел вне tariffs */
-const CFG={
-  WELD_JOINT:1200,
-  WELD_METER:950,
-  FREE_KM:30,
-  KM_RATE:35,
-  WORK_TYPES:['ndt','welding','complex']
+const CFG = {
+  WELD_JOINT: 1200,
+  WELD_METER: 950,
+  FREE_KM: 30,
+  KM_RATE: 35,
+  WORK_TYPES: ['ndt', 'welding', 'complex']
 };
 
-const n=id=>document.getElementById(id);
+const el = (id) => document.getElementById(id);
 
-/** Число ≥0; NaN / Infinity / отрицательные → 0 */
-function safeNum(v){
-  const x=typeof v==='number'?v:parseFloat(v);
-  if(!Number.isFinite(x)||x<0) return 0;
-  return x;
+function safeNum(v) {
+  const x = typeof v === 'number' ? v : parseFloat(String(v).replace(',', '.'));
+  return Number.isFinite(x) && x > 0 ? x : (Number.isFinite(x) && x === 0 ? 0 : 0);
 }
-function num(id){
-  const el=n(id);
-  return el?safeNum(el.value):0;
+function num(id) {
+  const node = el(id);
+  return node ? safeNum(node.value) : 0;
 }
-/** Коэффициент access/urgency: битое значение → fallback (обычно 1) */
-function factor(id, fallback=1){
-  const el=n(id);
-  const x=el?safeNum(el.value):0;
-  return x>0?x:fallback;
+function factor(id, fallback = 1) {
+  const x = num(id);
+  return x > 0 ? x : fallback;
 }
-const rub=v=>new Intl.NumberFormat('ru-RU',{maximumFractionDigits:0}).format(Math.round(Number.isFinite(v)?v:0))+' ₽';
-const escapeHtml=s=>String(s)
-  .replace(/&/g,'&amp;')
-  .replace(/</g,'&lt;')
-  .replace(/>/g,'&gt;')
-  .replace(/"/g,'&quot;')
-  .replace(/'/g,'&#39;');
-
-function coeffThickness(t){
-  t=safeNum(t);
-  return t<=10?1:t<=20?1.15:t<=30?1.3:t<=50?1.5:1.75;
+function rub(v) {
+  const n = Number.isFinite(v) ? v : 0;
+  return new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 }).format(Math.round(n)) + ' ₽';
 }
-function coeffDiameter(d){
-  d=safeNum(d);
-  return d<=108?1:d<=219?1.08:d<=426?1.18:d<=630?1.3:1.45;
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
-function getWorkType(){
-  const v=n('workType')?.value;
-  return CFG.WORK_TYPES.includes(v)?v:'ndt';
+function coeffThickness(t) {
+  t = safeNum(t);
+  return t <= 10 ? 1 : t <= 20 ? 1.15 : t <= 30 ? 1.3 : t <= 50 ? 1.5 : 1.75;
+}
+function coeffDiameter(d) {
+  d = safeNum(d);
+  return d <= 108 ? 1 : d <= 219 ? 1.08 : d <= 426 ? 1.18 : d <= 630 ? 1.3 : 1.45;
 }
 
-function checkedMethodKeys(){
+function getWorkType() {
+  const v = el('workType')?.value;
+  return CFG.WORK_TYPES.includes(v) ? v : 'ndt';
+}
+
+function checkedMethods() {
   return [...document.querySelectorAll('.method:checked')]
-    .map(el=>el.value)
-    .filter(key=>Object.prototype.hasOwnProperty.call(tariffs,key));
+    .map((n) => n.value)
+    .filter((k) => Object.prototype.hasOwnProperty.call(tariffs, k));
 }
 
-function syncMethodsUi(workType){
-  const weldingOnly=workType==='welding';
-  const block=n('methodsBlock');
-  block.classList.toggle('is-disabled',weldingOnly);
-  document.querySelectorAll('.method').forEach(el=>{
-    el.disabled=weldingOnly;
-    el.closest('.check')?.classList.toggle('is-disabled',weldingOnly);
+/** Зависимости UI от типа работ */
+function syncDependencies(workType) {
+  const isNdt = workType === 'ndt';
+  const isWeld = workType === 'welding';
+  const isComplex = workType === 'complex';
+
+  // Методы НК: только для ndt/complex
+  el('methodsSection').classList.toggle('dep-hidden', isWeld);
+  el('wrapPoints').classList.toggle('dep-hidden', isWeld);
+  document.querySelectorAll('.method').forEach((input) => {
+    input.disabled = isWeld;
+    if (isWeld) input.checked = false;
   });
+
+  el('methodsBadge').textContent = isWeld
+    ? 'Скрыты: тип «только сварка»'
+    : isComplex
+      ? 'Активны: сварка + НК'
+      : 'Активны: только НК';
+
+  el('workTypeHint').textContent = isWeld
+    ? 'Считается только сварка по стыкам и п.м. Методы НК скрыты.'
+    : isComplex
+      ? 'Считаются сварка и выбранные методы НК.'
+      : 'Считаются только выбранные методы НК.';
+
+  // Строки итога
+  el('ndtRow').hidden = isWeld;
+  el('weldRow').hidden = isNdt;
 }
 
-function workScopeLabel(workType, methodNames){
-  if(workType==='welding') return 'Сварка';
-  if(workType==='ndt') return methodNames.length?methodNames.join(', '):'не выбраны';
-  if(workType==='complex'){
-    const ndtPart=methodNames.length?methodNames.join(', '):'НК не выбран';
-    return 'Сварка + '+ndtPart;
+function setHint(text, warn) {
+  const hint = el('methodsHint');
+  hint.textContent = text;
+  hint.classList.toggle('warn', !!warn);
+}
+
+function workLabel(workType, names) {
+  if (workType === 'welding') return 'Сварка';
+  if (workType === 'ndt') return names.length ? names.join(', ') : 'методы не выбраны';
+  return 'Сварка + ' + (names.length ? names.join(', ') : 'НК не выбран');
+}
+
+function calculate() {
+  const workType = getWorkType();
+  syncDependencies(workType);
+
+  const joints = num('joints');
+  const meters = num('meters');
+  const points = num('points');
+  const diameter = num('diameter');
+  const thickness = num('thickness');
+  const access = factor('access', 1);
+  const urgency = factor('urgency', 1);
+
+  let ndtBase = 0;
+  const methodNames = [];
+  if (workType !== 'welding') {
+    for (const key of checkedMethods()) {
+      const t = tariffs[key];
+      ndtBase += t.joint * joints + t.meter * meters + t.point * points;
+      methodNames.push(t.name);
+    }
   }
-  return methodNames.length?methodNames.join(', '):'не выбраны';
-}
 
-function updateMethodsHint(workType, methodNames, ndtBase, weldBase){
-  const hint=n('methodsHint');
-  const set=(text, warn)=>{
-    hint.textContent=text;
-    hint.classList.toggle('warn',!!warn);
-  };
+  let weldBase = 0;
+  if (workType === 'welding' || workType === 'complex') {
+    weldBase = joints * CFG.WELD_JOINT + meters * CFG.WELD_METER;
+  }
 
-  if(workType==='welding'){
-    set(
-      weldBase===0
-        ? 'Укажите стыки и/или п.м. шва. Методы НК для этого типа не учитываются.'
-        : 'Для типа «Сварочные работы» методы НК не учитываются в расчёте и в выгрузке.',
-      weldBase===0
+  const base = ndtBase + weldBase;
+  const kt = coeffThickness(thickness);
+  const kd = coeffDiameter(diameter);
+  const kc = access * urgency;
+  const logistics = num('travel') + Math.max(0, num('distance') - CFG.FREE_KM) * CFG.KM_RATE;
+  const total = base * kt * kd * kc + logistics;
+
+  el('total').textContent = rub(total);
+  el('workSum').textContent = rub(base);
+  el('ndtSum').textContent = rub(ndtBase);
+  el('weldSum').textContent = rub(weldBase);
+  el('thicknessK').textContent = '× ' + kt.toFixed(2).replace('.', ',');
+  el('diameterK').textContent = '× ' + kd.toFixed(2).replace('.', ',');
+  el('conditionsK').textContent = '× ' + kc.toFixed(2).replace('.', ',');
+  el('logistics').textContent = rub(logistics);
+
+  // Подсказки зависимостей
+  if (workType === 'welding') {
+    setHint(
+      weldBase === 0
+        ? 'Укажите стыки и/или п.м. — иначе стоимость работ будет 0.'
+        : 'Методы НК не участвуют в расчёте при типе «только сварка».',
+      weldBase === 0
     );
-    return;
+  } else if (methodNames.length === 0) {
+    setHint(
+      workType === 'ndt'
+        ? 'Выберите метод НК — иначе в работах будет 0 (останется только логистика).'
+        : 'Выберите методы НК или оставьте только сварку по объёму стыков/п.м.',
+      true
+    );
+  } else if (ndtBase === 0) {
+    setHint('Методы выбраны, но объём 0: для ВИК/УЗК/ПВК/МК нужны стыки или п.м.; для РК — снимки; для толщинометрии — точки.', true);
+  } else {
+    setHint('Расчёт обновляется при каждом изменении поля.', false);
   }
 
-  if(methodNames.length===0){
-    if(workType==='ndt'){
-      set('Выберите хотя бы один метод НК — иначе в стоимости работ будет только логистика (если указана).', true);
-    }else{
-      set('Для «Сварка + НК» выберите методы контроля, иначе в расчёт попадёт только сварка.', true);
-    }
-    return;
-  }
-
-  if(ndtBase===0){
-    set('Методы выбраны, но объём для них нулевой: для ВИК/УЗК/ПВК/МК нужны стыки или п.м.; для РК — также снимки; для толщинометрии — точки.', true);
-    return;
-  }
-
-  set('Можно выбрать несколько методов. Базовые ставки и коэффициенты — в объекте tariffs и CFG.', false);
+  return {
+    total, base, ndtBase, weldBase, kt, kd, kc, logistics,
+    methods: workLabel(workType, methodNames),
+    workType, methodNames
+  };
 }
 
-function calculate(){
-  const workType=getWorkType();
-  syncMethodsUi(workType);
-
-  const joints=num('joints');
-  const meters=num('meters');
-  const points=num('points');
-  const d=num('diameter');
-  const t=num('thickness');
-  const access=factor('access',1);
-  const urgency=factor('urgency',1);
-
-  const methodKeys=workType==='welding'?[]:checkedMethodKeys();
-  let ndtBase=0;
-  const methodNames=[];
-
-  if(workType!=='welding'){
-    for(const key of methodKeys){
-      const a=tariffs[key];
-      ndtBase+=a.joint*joints+a.meter*meters+a.point*points;
-      methodNames.push(a.name);
-    }
-  }
-
-  let weldBase=0;
-  if(workType==='welding'||workType==='complex'){
-    weldBase=joints*CFG.WELD_JOINT+meters*CFG.WELD_METER;
-  }
-
-  const base=ndtBase+weldBase;
-  const kt=coeffThickness(t);
-  const kd=coeffDiameter(d);
-  const kc=access*urgency;
-  const logistics=num('travel')+Math.max(0,num('distance')-CFG.FREE_KM)*CFG.KM_RATE;
-  const total=base*kt*kd*kc+logistics;
-  const methods=workScopeLabel(workType, methodNames);
-
-  n('total').textContent=rub(total);
-  n('workSum').textContent=rub(base);
-  n('ndtSum').textContent=rub(ndtBase);
-  n('weldSum').textContent=rub(weldBase);
-  n('ndtRow').hidden=workType==='welding';
-  n('weldRow').hidden=workType==='ndt';
-  n('thicknessK').textContent='× '+kt.toFixed(2).replace('.',',');
-  n('diameterK').textContent='× '+kd.toFixed(2).replace('.',',');
-  n('conditionsK').textContent='× '+kc.toFixed(2).replace('.',',');
-  n('logistics').textContent=rub(logistics);
-
-  updateMethodsHint(workType, methodNames, ndtBase, weldBase);
-
-  return {total,base,ndtBase,weldBase,kt,kd,kc,logistics,methods,workType,methodNames};
-}
-
-function dataText(){
-  const r=calculate();
-  const weldLine=(r.workType==='welding'||r.workType==='complex')
-    ? `\nСварка: ${num('joints')} стыков; ${num('meters')} п.м.`
-    : '';
-  const ndtLine=(r.workType==='ndt'||r.workType==='complex')
-    ? `\nНК: ${r.methodNames.length?r.methodNames.join(', '):'не выбраны'}; база НК ${rub(r.ndtBase)}`
-    : '';
+function dataText() {
+  const r = calculate();
   return `РАСЧЁТ НК И СВАРОЧНЫХ РАБОТ
-Клиент: ${n('client').value||'—'}
-Контакт: ${n('contact').value||'—'}
-Тип работ: ${n('workType').selectedOptions[0].text}
-Объект: ${n('object').selectedOptions[0].text}
-Место: ${n('location').value||'—'}
-Состав работ: ${r.methods}${weldLine}${ndtLine}
-Диаметр: ${num('diameter')} мм; толщина: ${num('thickness')} мм
+Клиент: ${el('client').value || '—'}
+Контакт: ${el('contact').value || '—'}
+Тип работ: ${el('workType').selectedOptions[0].text}
+Объект: ${el('object').selectedOptions[0].text}
+Место: ${el('location').value || '—'}
+Состав: ${r.methods}
 Объём: ${num('joints')} стыков; ${num('meters')} п.м.; ${num('points')} точек/снимков
-Коэфф.: толщина ×${r.kt.toFixed(2)}, диаметр ×${r.kd.toFixed(2)}, условия ×${r.kc.toFixed(2)}
+Геометрия: Ø ${num('diameter')} мм; стенка ${num('thickness')} мм
+Коэфф.: толщина ×${r.kt.toFixed(2)}; диаметр ×${r.kd.toFixed(2)}; условия ×${r.kc.toFixed(2)}
 Логистика: ${rub(r.logistics)}
-Расчётная стоимость: ${rub(r.total)}
-Комментарий: ${n('comment').value||'—'}`;
+Итого: ${rub(r.total)}
+Комментарий: ${el('comment').value || '—'}`;
 }
 
-let copyTimer=null;
-document.querySelectorAll('input,select,textarea').forEach(el=>{
-  el.addEventListener('input',calculate);
-  el.addEventListener('change',calculate);
-});
+// Живой пересчёт на любые изменения
+function bindLiveCalc() {
+  const root = el('formCard');
+  root.addEventListener('input', calculate);
+  root.addEventListener('change', calculate);
+}
+bindLiveCalc();
 
-n('copy').addEventListener('click',async()=>{
-  try{
+let copyTimer = null;
+el('copy').addEventListener('click', async () => {
+  try {
     await navigator.clipboard.writeText(dataText());
-    n('copy').textContent='Данные скопированы';
-    if(copyTimer) clearTimeout(copyTimer);
-    copyTimer=setTimeout(()=>{n('copy').textContent='Скопировать данные для сделки';copyTimer=null},1500);
-  }catch(e){
+    el('copy').textContent = 'Скопировано';
+    clearTimeout(copyTimer);
+    copyTimer = setTimeout(() => { el('copy').textContent = 'Скопировать для сделки'; }, 1500);
+  } catch (e) {
     alert(dataText());
   }
 });
 
-n('proposal').addEventListener('click',()=>{
-  const r=calculate();
-  const weldRowHtml=(r.workType==='welding'||r.workType==='complex')
-    ? `<tr><td>Сварка</td><td>${num('joints')} стыков; ${num('meters')} п.м.; база ${escapeHtml(rub(r.weldBase))}</td></tr>`
-    : '';
-  const ndtRowHtml=(r.workType==='ndt'||r.workType==='complex')
-    ? `<tr><td>НК</td><td>${escapeHtml(r.methodNames.length?r.methodNames.join(', '):'не выбраны')}; база ${escapeHtml(rub(r.ndtBase))}</td></tr>`
-    : '';
-  const html=`<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Коммерческое предложение</title><style>body{font:14px Arial;max-width:800px;margin:45px auto;line-height:1.5}h1{font-size:22px}table{border-collapse:collapse;width:100%;margin:20px 0}td{border:1px solid #bbb;padding:8px}.total{font-size:20px;font-weight:bold}</style></head><body><h1>Коммерческое предложение</h1><p>Предлагаем выполнить работы по неразрушающему контролю / сварочным работам.</p><table><tr><td>Заказчик</td><td>${escapeHtml(n('client').value||'—')}</td></tr><tr><td>Контакт</td><td>${escapeHtml(n('contact').value||'—')}</td></tr><tr><td>Тип работ</td><td>${escapeHtml(n('workType').selectedOptions[0].text)}</td></tr><tr><td>Объект</td><td>${escapeHtml(n('object').selectedOptions[0].text)}</td></tr><tr><td>Место выполнения</td><td>${escapeHtml(n('location').value||'—')}</td></tr><tr><td>Состав работ</td><td>${escapeHtml(r.methods)}</td></tr>${weldRowHtml}${ndtRowHtml}<tr><td>Параметры</td><td>Ø ${num('diameter')} мм, толщина ${num('thickness')} мм; ${num('joints')} стыков, ${num('meters')} п.м., ${num('points')} точек/снимков</td></tr><tr><td>Условия</td><td>${escapeHtml(n('access').selectedOptions[0].text)}; ${escapeHtml(n('urgency').selectedOptions[0].text)}</td></tr><tr><td>Коэффициенты</td><td>толщина ×${r.kt.toFixed(2).replace('.',',')}; диаметр ×${r.kd.toFixed(2).replace('.',',')}; условия ×${r.kc.toFixed(2).replace('.',',')}</td></tr><tr><td>Логистика</td><td>${escapeHtml(rub(r.logistics))}</td></tr></table><p class="total">Расчётная стоимость: ${escapeHtml(rub(r.total))}</p><p>Стоимость является предварительной и подлежит уточнению после изучения технического задания, НТД, фактических объёмов и условий доступа.</p><p>Комментарий: ${escapeHtml(n('comment').value||'—')}</p><script>window.print()<\/script></body></html>`;
-  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
-  const url=URL.createObjectURL(blob);
-  const w=window.open(url,'_blank');
-  if(!w){
+el('proposal').addEventListener('click', () => {
+  const r = calculate();
+  const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>КП</title>
+  <style>body{font:14px system-ui,Arial;max-width:800px;margin:32px auto;padding:0 16px;line-height:1.5}table{border-collapse:collapse;width:100%;margin:16px 0}td{border:1px solid #bbb;padding:8px}.total{font-size:20px;font-weight:700}</style></head>
+  <body><h1>Коммерческое предложение</h1>
+  <table>
+  <tr><td>Заказчик</td><td>${escapeHtml(el('client').value || '—')}</td></tr>
+  <tr><td>Контакт</td><td>${escapeHtml(el('contact').value || '—')}</td></tr>
+  <tr><td>Тип работ</td><td>${escapeHtml(el('workType').selectedOptions[0].text)}</td></tr>
+  <tr><td>Объект</td><td>${escapeHtml(el('object').selectedOptions[0].text)}</td></tr>
+  <tr><td>Место</td><td>${escapeHtml(el('location').value || '—')}</td></tr>
+  <tr><td>Состав</td><td>${escapeHtml(r.methods)}</td></tr>
+  <tr><td>Объём</td><td>${num('joints')} стыков; ${num('meters')} п.м.; ${num('points')} точек/снимков</td></tr>
+  <tr><td>Геометрия</td><td>Ø ${num('diameter')} мм; стенка ${num('thickness')} мм</td></tr>
+  <tr><td>Условия</td><td>${escapeHtml(el('access').selectedOptions[0].text)}; ${escapeHtml(el('urgency').selectedOptions[0].text)}</td></tr>
+  <tr><td>Логистика</td><td>${escapeHtml(rub(r.logistics))}</td></tr>
+  </table>
+  <p class="total">Итого: ${escapeHtml(rub(r.total))}</p>
+  <p>Стоимость предварительная и уточняется по ТЗ, НТД и факту.</p>
+  <p>Комментарий: ${escapeHtml(el('comment').value || '—')}</p>
+  <script>window.print()<\/script></body></html>`;
+  const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+  const w = window.open(url, '_blank');
+  if (!w) {
     URL.revokeObjectURL(url);
-    alert('Разрешите всплывающие окна, чтобы открыть коммерческое предложение.');
+    alert('Разрешите всплывающие окна для КП.');
     return;
   }
-  setTimeout(()=>URL.revokeObjectURL(url),60000);
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
 });
 
 calculate();
