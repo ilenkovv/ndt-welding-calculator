@@ -9,12 +9,14 @@
 <body>
 <header>
   <h1>Лаба вида работ: сварка</h1>
-  <p>Изолированный расчёт · роли бригады · зависимости объекта · НК отключён</p>
+  <p>Изолированный расчёт · описания полей · роли бригады · НК отключён</p>
   <nav>
     <a href="./index.html">Обзор</a>
     <a href="./ndt.html">НК</a>
     <a class="active" href="./welding.html">Сварка</a>
     <a href="./logistics.html">Логистика</a>
+    <a href="./secretary-bot.html">Робот-секретарь</a>
+    <a href="./sales-human.html">Менеджер</a>
   </nav>
 </header>
 <main>
@@ -24,7 +26,7 @@
     <h3>Объект и объём</h3>
     <div class="grid">
       <div>
-        <label for="object">Объект</label>
+        <label for="object">№5 Объект</label>
         <select id="object">
           <option value="pipe">Трубопровод</option>
           <option value="tank">Резервуар</option>
@@ -32,24 +34,53 @@
           <option value="vessel">Сосуд / котёл</option>
           <option value="other">Другое</option>
         </select>
+        <div class="hint" data-field="object">Тип конструкции. Для металла диаметр скрыт.</div>
       </div>
-      <div id="wrapJoints"><label for="joints">Стыки</label><input id="joints" type="number" min="0" value="0"></div>
-      <div id="wrapMeters"><label for="meters">П.м.</label><input id="meters" type="number" min="0" step="0.1" value="10"></div>
-      <div id="wrapDiameter"><label for="diameter">Диаметр, мм</label><input id="diameter" type="number" min="0" value="530"></div>
-      <div id="wrapThickness"><label for="thickness">Толщина, мм</label><input id="thickness" type="number" min="0" step="0.1" value="12"></div>
-      <div>
-        <label for="urgency">Срочность</label>
-        <select id="urgency"><option value="1">1</option><option value="1.3">1.3</option><option value="1.5">1.5</option></select>
+      <div id="wrapJoints">
+        <label for="joints">№6 Стыки, шт.</label>
+        <input id="joints" type="number" min="0" value="0">
+        <div class="hint" data-field="joints">Стыки «по штукам». Для металла — опционально.</div>
+      </div>
+      <div id="wrapMeters">
+        <label for="meters">№7 Длина шва, п.м.</label>
+        <input id="meters" type="number" min="0" step="0.1" value="10">
+        <div class="hint" data-field="meters">Погонные метры — основной объём для металлоконструкций.</div>
+      </div>
+      <div id="wrapDiameter">
+        <label for="diameter">№9 Диаметр, мм</label>
+        <input id="diameter" type="number" min="0" value="530">
+        <div class="hint" data-field="diameter">Коэффициент диаметра. У металла не применяется (k=1).</div>
+      </div>
+      <div id="wrapThickness">
+        <label for="thickness">№10 Толщина, мм</label>
+        <input id="thickness" type="number" min="0" step="0.1" value="12">
+        <div class="hint" data-field="thickness">Толщина металла / стенки. Коэффициент толщины.</div>
       </div>
       <div>
-        <label for="access">Доступ</label>
-        <select id="access"><option value="1">1</option><option value="1.15">1.15</option><option value="1.25">1.25</option><option value="1.4">1.4</option></select>
+        <label for="urgency">№12 Срочность</label>
+        <select id="urgency">
+          <option value="1">Стандарт ×1</option>
+          <option value="1.3">Срочно ×1.3</option>
+          <option value="1.5">Экстренно ×1.5</option>
+        </select>
+        <div class="hint" data-field="urgency">Множитель только на сварочные работы.</div>
+      </div>
+      <div>
+        <label for="access">№13 Доступ</label>
+        <select id="access">
+          <option value="1">Нормальный ×1</option>
+          <option value="1.15">Стеснённый ×1.15</option>
+          <option value="1.25">Высота / сложный ×1.25</option>
+          <option value="1.4">Опасный ×1.4</option>
+        </select>
+        <div class="hint" data-field="access">Сложность доступа. Влияет на цену и состав бригады.</div>
       </div>
     </div>
     <div class="hint" id="hint"></div>
   </div>
   <div class="section">
     <h3>Роли бригады</h3>
+    <div class="hint">Оценка численности: сварщик + помощник по объёму стыков/п.м.</div>
     <div id="roles"></div>
     <div class="hint" id="depsText"></div>
   </div>
@@ -68,9 +99,13 @@
 </aside>
 </main>
 <script type="module">
-import { calculateWelding, rub } from '../src/index.mjs';
+import { calculateWelding, rub, getField } from '../src/index.mjs';
 
 const el = (id) => document.getElementById(id);
+for (const node of document.querySelectorAll('[data-field]')) {
+  const f = getField(node.getAttribute('data-field'));
+  if (f?.description) node.textContent = f.description;
+}
 
 function syncVisibility(deps) {
   el('wrapJoints').classList.toggle('dep-hidden', !deps.effective.showJoints);

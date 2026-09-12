@@ -9,33 +9,35 @@
 <body>
 <header>
   <h1>Лаба: логистика из базы</h1>
-  <p>Город / адрес → усреднённые билеты и отели · транспорт auto</p>
+  <p>Город / адрес → билеты и отели · у каждого поля — описание · транспорт auto</p>
   <nav>
     <a href="./index.html">Обзор</a>
     <a href="./ndt.html">НК</a>
     <a href="./welding.html">Сварка</a>
     <a class="active" href="./logistics.html">Логистика</a>
+    <a href="./secretary-bot.html">Робот-секретарь</a>
+    <a href="./sales-human.html">Менеджер</a>
   </nav>
 </header>
 <main>
 <section class="card" id="formCard">
   <div class="badge">База выезда: Москва · цены справочные (усреднённые)</div>
   <div class="section">
-    <h3>Место</h3>
+    <h3>Место и выезд</h3>
     <div class="grid">
       <div class="full">
-        <label for="city">Город</label>
+        <label for="city">№3 Город</label>
         <input id="city" list="cityList" placeholder="Казань, СПб, Тверь…">
         <datalist id="cityList"></datalist>
-        <div class="hint">При вводе подтягивается база. При очистке — сброс сумм.</div>
+        <div class="hint" data-field="city">Из базы: расстояние, усреднённые билеты и отель. Очистка города сбрасывает суммы.</div>
       </div>
       <div class="full">
-        <label for="address">Адрес / объект</label>
-        <input id="address" placeholder="улица, площадка (не влияет на тариф города)">
-        <div class="hint">Удаление адреса не сбрасывает город; очистка города сбрасывает логистику.</div>
+        <label for="address">№3b Адрес / площадка</label>
+        <input id="address" placeholder="улица, площадка">
+        <div class="hint" data-field="address">Уточнение для проезда. Не меняет тариф города. Очистка адреса город не сбрасывает.</div>
       </div>
       <div>
-        <label for="transport">Транспорт</label>
+        <label for="transport">№14 Транспорт</label>
         <select id="transport">
           <option value="auto" selected>Авто (по расстоянию)</option>
           <option value="car">Автомобиль</option>
@@ -43,18 +45,22 @@
           <option value="flight">Самолёт</option>
           <option value="bus">Автобус</option>
         </select>
+        <div class="hint" data-field="transport">Auto: ≤200 км авто, ≤900 км поезд, иначе самолёт (если есть в базе).</div>
       </div>
       <div>
-        <label for="people">Человек</label>
+        <label for="people">№15b Человек в выезде</label>
         <input id="people" type="number" min="1" value="2">
+        <div class="hint" data-field="people">Умножает билеты, трансфер и отель.</div>
       </div>
       <div>
-        <label for="nights">Ночи (пусто = авто)</label>
+        <label for="nights">№15 Ночи проживания</label>
         <input id="nights" type="number" min="0" placeholder="авто">
+        <div class="hint" data-field="nights">Пусто = авто по дням работ и расстоянию (&gt;80 км).</div>
       </div>
       <div>
-        <label for="workDays">Дни работ</label>
+        <label for="workDays">№15c Дни работ</label>
         <input id="workDays" type="number" min="1" value="2">
+        <div class="hint" data-field="workDays">Плановая длительность. Нужна для авто-расчёта ночей.</div>
       </div>
     </div>
     <div class="hint" id="matchHint"></div>
@@ -78,9 +84,14 @@
 </aside>
 </main>
 <script type="module">
-import { calculateLogistics, suggestCities, listCities, rub } from '../src/index.mjs';
+import { calculateLogistics, suggestCities, listCities, rub, getField } from '../src/index.mjs';
 
 const el = (id) => document.getElementById(id);
+for (const node of document.querySelectorAll('[data-field]')) {
+  const f = getField(node.getAttribute('data-field'));
+  if (f?.description) node.textContent = f.description;
+}
+
 const dl = el('cityList');
 for (const c of listCities()) {
   const opt = document.createElement('option');

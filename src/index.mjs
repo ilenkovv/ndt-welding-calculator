@@ -22,6 +22,13 @@ export { OBJECT_PROFILES, getObjectProfile } from './object-profiles.mjs';
 export { NDT_TARIFFS, WELD_TARIFFS, LOGISTICS_CFG, WORK_TYPES } from './tariffs.mjs';
 export { coeffThickness, coeffDiameter, conditionsFactor } from './coeffs.mjs';
 export { rub, roundMoney, safeNum, normalizeText } from './utils.mjs';
+export {
+  FIELD_CATALOG,
+  INTAKE_ORDER,
+  getField,
+  listFields,
+  fieldsForWorkType
+} from './field-catalog.mjs';
 
 /** Алиасы удобных имён для лаб */
 export { calculateNdt as calcNdt } from './work-types/ndt.mjs';

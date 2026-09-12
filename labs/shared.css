@@ -23,7 +23,9 @@ input,select,textarea{width:100%;padding:10px;border:1px solid #bcc9d8;border-ra
 .checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .check{font-weight:400;border:1px solid var(--line);border-radius:8px;padding:9px;display:flex;gap:8px;align-items:flex-start}
 .check input{width:auto;margin-top:3px}
-.dep-hidden{display:none!important}
+.dep-hidden,.dep-hidden{display:none!important}
+.field-desc{font-size:.78rem;color:var(--muted);margin-top:4px;line-height:1.35}
+label .num{display:inline-block;min-width:1.4rem;margin-right:4px;color:var(--blue);font-weight:800}
 .result{position:sticky;top:12px;align-self:start}
 .price{font-size:1.75rem;font-weight:800;color:var(--green);margin:4px 0 12px}
 .row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #e9edf2;padding:8px 0;font-size:.92rem}

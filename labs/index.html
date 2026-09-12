@@ -9,12 +9,14 @@
 <body>
 <header>
   <h1>Лаборатории видов работ</h1>
-  <p>Пока виды разделены для глубокой проверки. Позже соединим в единый калькулятор.</p>
+  <p>Виды разделены для проверки. У полей — описания. Отдельно: скрипты робота и менеджера.</p>
   <nav>
     <a class="active" href="./index.html">Обзор</a>
     <a href="./ndt.html">НК</a>
     <a href="./welding.html">Сварка</a>
     <a href="./logistics.html">Логистика</a>
+    <a href="./secretary-bot.html">Робот-секретарь</a>
+    <a href="./sales-human.html">Менеджер</a>
   </nav>
 </header>
 <main style="grid-template-columns:1fr">
@@ -23,13 +25,19 @@
     <table class="mini">
       <thead><tr><th>Вид</th><th>Модуль</th><th>Что проверяем</th><th>Статус</th></tr></thead>
       <tbody>
-        <tr><td>НК</td><td><code>src/work-types/ndt.mjs</code></td><td>Методы, тарифы, точки, зависимости объекта, роли бригады НК</td><td class="ok">отдельно</td></tr>
-        <tr><td>Сварка</td><td><code>src/work-types/welding.mjs</code></td><td>Стыки/п.м., роли сварщик/помощник, геометрия</td><td class="ok">отдельно</td></tr>
-        <tr><td>Логистика</td><td><code>src/work-types/logistics.mjs</code></td><td>Город/адрес → база, билеты, отели, auto-транспорт</td><td class="ok">отдельно</td></tr>
+        <tr><td>НК</td><td><code>src/work-types/ndt.mjs</code></td><td>Методы, тарифы, точки, зависимости, описания полей</td><td class="ok">отдельно</td></tr>
+        <tr><td>Сварка</td><td><code>src/work-types/welding.mjs</code></td><td>Стыки/п.м., роли бригады, описания полей</td><td class="ok">отдельно</td></tr>
+        <tr><td>Логистика</td><td><code>src/work-types/logistics.mjs</code></td><td>Город/адрес → база, билеты, отели, auto</td><td class="ok">отдельно</td></tr>
+        <tr><td>Каталог полей</td><td><code>src/field-catalog.mjs</code></td><td>Описания, вопросы бота, подсказки менеджера</td><td class="ok">общий</td></tr>
+        <tr><td>Робот-секретарь</td><td><code>scripts/secretary-bot.mjs</code></td><td>Автодиалог сбора заявки</td><td class="ok">готов</td></tr>
+        <tr><td>Менеджер</td><td><code>scripts/sales-human.mjs</code></td><td>Скрипт разговора + чек-лист</td><td class="ok">готов</td></tr>
         <tr><td>Комплекс</td><td>—</td><td>Склейка НК + сварка + логистика</td><td class="no">позже</td></tr>
       </tbody>
     </table>
-    <p class="note">Тесты: <code>npm run test:unit</code> · Лабы: <code>npm run lab</code></p>
+    <p class="note">
+      Тесты: <code>npm run test:unit</code> · Лабы: <code>npm run lab</code><br>
+      Бот: <code>npm run script:bot</code> · Менеджер: <code>npm run script:human</code>
+    </p>
   </section>
 </main>
 </body>

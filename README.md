@@ -34,11 +34,25 @@ npm run lab
 
 Очистка города сбрасывает суммы; очистка адреса — нет.
 
+## Описания полей и скрипты продаж
+
+Каталог: `src/field-catalog.mjs` (описание, вопрос бота, подсказка менеджера).
+
+```bash
+npm run script:bot              # скрипт робота-секретаря
+npm run script:bot:demo         # демо-диалог
+npm run script:bot:json         # JSON-плейбук для интеграции
+npm run script:human            # скрипт менеджера (человек)
+npm run script:human:checklist  # чек-лист галочками
+```
+
+В UI: `/labs/secretary-bot.html` и `/labs/sales-human.html`.
+
 ## Тесты
 
 ```bash
 npm install
-npm run test:unit    # 97 проверок по видам работ
+npm run test:unit    # проверки по видам работ
 npm run test:labs    # smoke UI лабораторий
 npm test
 ```

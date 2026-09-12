@@ -8,7 +8,12 @@
     "test:unit": "node tests/unit-runner.mjs",
     "test:labs": "node tests/labs-smoke.mjs",
     "test:e2e": "node test-e2e.mjs",
-    "lab": "node scripts/serve-labs.mjs"
+    "lab": "node scripts/serve-labs.mjs",
+    "script:bot": "node scripts/secretary-bot.mjs",
+    "script:bot:demo": "node scripts/secretary-bot.mjs --demo",
+    "script:bot:json": "node scripts/secretary-bot.mjs --json",
+    "script:human": "node scripts/sales-human.mjs",
+    "script:human:checklist": "node scripts/sales-human.mjs --checklist"
   },
   "keywords": ["ndt", "welding", "calculator"],
   "license": "ISC",
