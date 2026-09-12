@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Опросный лист по видам услуг</title>
+<link rel="stylesheet" href="./shared.css">
+<style>
+main.single{grid-template-columns:1fr}
+.q{border:1px solid var(--line);border-radius:10px;padding:12px;margin:0 0 10px;background:#fff}
+.q h4{margin:0 0 6px;font-size:.95rem}
+.q .meta{font-size:.75rem;color:var(--muted);margin:0 0 8px}
+textarea,input.ans{width:100%;padding:10px;border:1px solid #bcc9d8;border-radius:8px;font:inherit;background:#fafcfe}
+textarea{min-height:64px;resize:vertical}
+.block{margin:0 0 18px}
+.block h2{margin:0 0 10px;font-size:1.1rem;border-bottom:2px solid #0f5c4c;padding-bottom:6px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.toolbar button{border:0;border-radius:8px;padding:10px 14px;background:var(--blue);color:#fff;font-weight:700;cursor:pointer;font:inherit}
+.toolbar button.secondary{background:#687789}
+@media print{
+  header nav,.toolbar,button{display:none!important}
+  body{background:#fff}
+  .q{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Опросный лист по видам услуг</h1>
+  <p>Вопросы от ассистента к вам — отвечайте по блокам. Так зафиксируем правила НК, сварки и логистики.</p>
+  <nav>
+    <a href="./index.html">Обзор</a>
+    <a href="./ndt.html">НК</a>
+    <a href="./welding.html">Сварка</a>
+    <a href="./logistics.html">Логистика</a>
+    <a class="active" href="./questionnaire.html">Опросный лист</a>
+    <a href="./secretary-bot.html">Робот-секретарь</a>
+    <a href="./sales-human.html">Менеджер</a>
+  </nav>
+</header>
+<main class="single">
+<section class="card">
+  <div class="badge">Заполните → «Скопировать ответы» → пришлите в чат</div>
+  <div class="toolbar">
+    <button type="button" id="copy">Скопировать ответы</button>
+    <button type="button" class="secondary" id="print">Печать</button>
+    <button type="button" class="secondary" id="clear">Очистить</button>
+  </div>
+  <div id="form"></div>
+  <p class="note" id="status"></p>
+</section>
+</main>
+<script type="module">
+const BLOCKS = [
+  {
+    id: 'common',
+    title: '0. Общее (для всех услуг)',
+    questions: [
+      { id: 'company', q: 'Как называется ваша компания / бренд в КП?' },
+      { id: 'base_city', q: 'Город базы выезда (сейчас в системе — Москва). Меняем?' },
+      { id: 'currency_vat', q: 'Цены с НДС или без? Какая ставка НДС?' },
+      { id: 'kp_validity', q: 'Срок действия предварительного КП (дней)?' },
+      { id: 'min_order', q: 'Есть минимальная сумма заказа / выезда? Какая?' },
+      { id: 'work_types_offer', q: 'Какие виды услуг продаёте официально: только НК / только сварка / комплекс / ещё что-то?' }
+    ]
+  },
+  {
+    id: 'ndt',
+    title: '1. Услуга: НК (неразрушающий контроль)',
+    questions: [
+      { id: 'ndt_methods', q: 'Какие методы НК реально оказываете? (ВИК, УЗК, РК, ПВК, МК, толщинометрия — что оставить / убрать / добавить?)' },
+      { id: 'ndt_tariff_joint', q: 'Тарифы «за стык» по методам — ваши актуальные цены? (сейчас: ВИК 250, УЗК 700, РК 1500, ПВК 600, МК 650)' },
+      { id: 'ndt_tariff_meter', q: 'Тарифы «за п.м.» по методам — актуальные? (сейчас: ВИК 150, УЗК 650, РК 1300, ПВК 500, МК 550)' },
+      { id: 'ndt_tariff_point', q: 'Тарифы «за точку/снимок»? (сейчас: РК 900, толщинометрия 180)' },
+      { id: 'ndt_crew', q: 'Сколько человек обычно едет на метод? (сейчас: ВИК 1, УЗК/РК 2, остальные 1)' },
+      { id: 'ndt_when_points', q: 'Когда обязательно спрашивать точки/снимки? Только РК и толщинометрия — верно?' },
+      { id: 'ndt_objects', q: 'На каких объектах делаете НК чаще: трубы, резервуары, металл, сосуды?' },
+      { id: 'ndt_docs', q: 'Какие НТД / ГОСТы обычно указываете в КП по НК?' },
+      { id: 'ndt_exclude', q: 'Что нельзя обещать клиенту по НК без выезда инженера?' }
+    ]
+  },
+  {
+    id: 'welding',
+    title: '2. Услуга: сварка',
+    questions: [
+      { id: 'weld_tariff_joint', q: 'Цена сварки за стык? (сейчас 1200 ₽)' },
+      { id: 'weld_tariff_meter', q: 'Цена сварки за п.м.? (сейчас 950 ₽)' },
+      { id: 'weld_roles', q: 'Состав бригады: только сварщик + помощник или ещё роли (термист, мастер)?' },
+      { id: 'weld_productivity', q: 'Норма выработки: сколько стыков / п.м. на сварщика в день? (сейчас ориентир 8 стыков / 12 п.м.)' },
+      { id: 'weld_materials', q: 'Материалы/электроды входят в тариф или отдельно?' },
+      { id: 'weld_certs', q: 'Нужны ли в КП указания по НАКС / допускам сварщиков?' },
+      { id: 'weld_objects', q: 'На каких объектах сварка основная: трубы, металл, сосуды?' },
+      { id: 'weld_with_ndt', q: 'Как часто продаёте «сварка + НК» комплексом? Есть скидка на комплекс?' }
+    ]
+  },
+  {
+    id: 'logistics',
+    title: '3. Услуга / блок: логистика',
+    questions: [
+      { id: 'log_free_km', q: 'Сколько км от базы бесплатно? (сейчас 30 км)' },
+      { id: 'log_km_rate', q: 'Ставка ₽/км сверх бесплатных? (сейчас 35 ₽/км, туда-обратно для авто)' },
+      { id: 'log_auto_rules', q: 'Правила auto-транспорта верны? ≤200 км авто, ≤900 км поезд, иначе самолёт' },
+      { id: 'log_hotels', q: 'Отели: оставляем усреднённые по городу или у вас свой список гостиниц/лимитов?' },
+      { id: 'log_tickets', q: 'Билеты: ок усреднённые из базы или подключать актуальные API позже?' },
+      { id: 'log_cities', q: 'Какие города добавить в базу в первую очередь (топ-10 ваших выездов)?' },
+      { id: 'log_nights_rule', q: 'Правило ночей: при >80 км ночи ≥ дней работ — ок или другая логика?' },
+      { id: 'log_transfer', q: 'Трансфер вокзал/аэропорт: фиксированная сумма? (сейчас 2500 ₽/чел.)' },
+      { id: 'log_who_pays', q: 'Логистику всегда включает заказчик или бывает «работы с базой / без выезда» = 0?' }
+    ]
+  },
+  {
+    id: 'conditions',
+    title: '4. Условия (срочность и доступ) — общие множители',
+    questions: [
+      { id: 'urgency_ok', q: 'Множители срочности ок? стандарт ×1 / срочно ×1.3 / экстренно ×1.5' },
+      { id: 'access_ok', q: 'Множители доступа ок? норма ×1 / стеснённый ×1.15 / высота ×1.25 / опасный ×1.4' },
+      { id: 'coeffs_geo', q: 'Коэффициенты толщины и диаметра оставляем как сейчас или дать вашу таблицу?' },
+      { id: 'who_multiplies', q: 'Множители действуют только на работы (не на логистику) — подтверждаете?' }
+    ]
+  },
+  {
+    id: 'sales',
+    title: '5. Продажи: робот-секретарь и менеджер',
+    questions: [
+      { id: 'bot_tone', q: 'Тон бота: на «вы», коротко, без обещания финальной цены — ок?' },
+      { id: 'bot_must_ask', q: 'Какие 5 вопросов бот обязан задать всегда, даже если клиент торопится?' },
+      { id: 'bot_never', q: 'Чего бот никогда не должен обещать / говорить?' },
+      { id: 'human_handoff', q: 'Когда бот обязан передать живому менеджеру (сумма, сложность, тендер…)?' },
+      { id: 'crm', q: 'Куда складывать заявки: WhatsApp / Telegram / почта / CRM (какая)?' }
+    ]
+  },
+  {
+    id: 'priority',
+    title: '6. Приоритет следующей доработки',
+    questions: [
+      { id: 'next_1', q: 'Что важнее сейчас: 1) склеить единый калькулятор, 2) ваши реальные тарифы, 3) больше городов, 4) КП/печать?' },
+      { id: 'next_2', q: 'Есть ли прайс-лист / Excel / фото тарифов, которые можно дать как эталон?' },
+      { id: 'next_3', q: 'Другие услуги кроме НК/сварки/логистики, которые надо заложить сразу?' }
+    ]
+  }
+];
+
+const form = document.getElementById('form');
+const status = document.getElementById('status');
+const KEY = 'ndt-questionnaire-v1';
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; }
+}
+function save(data) {
+  localStorage.setItem(KEY, JSON.stringify(data));
+}
+
+function render() {
+  const data = load();
+  form.innerHTML = '';
+  for (const block of BLOCKS) {
+    const wrap = document.createElement('div');
+    wrap.className = 'block';
+    wrap.innerHTML = `<h2>${block.title}</h2>`;
+    for (const item of block.questions) {
+      const q = document.createElement('div');
+      q.className = 'q';
+      q.innerHTML =
+        `<h4>${item.q}</h4>` +
+        `<div class="meta">${block.id} / ${item.id}</div>` +
+        `<textarea data-id="${item.id}" placeholder="Ваш ответ…">${data[item.id] || ''}</textarea>`;
+      wrap.appendChild(q);
+    }
+    form.appendChild(wrap);
+  }
+  form.querySelectorAll('textarea').forEach((ta) => {
+    ta.addEventListener('input', () => {
+      const all = load();
+      all[ta.dataset.id] = ta.value;
+      save(all);
+      status.textContent = 'Черновик сохранён в браузере';
+    });
+  });
+}
+
+function collect() {
+  const data = load();
+  const lines = ['# Ответы на опросный лист по видам услуг', ''];
+  for (const block of BLOCKS) {
+    lines.push(`## ${block.title}`, '');
+    for (const item of block.questions) {
+      lines.push(`**${item.q}**`);
+      lines.push(data[item.id]?.trim() || '—');
+      lines.push('');
+    }
+  }
+  return lines.join('\n');
+}
+
+document.getElementById('copy').onclick = async () => {
+  const text = collect();
+  try {
+    await navigator.clipboard.writeText(text);
+    status.textContent = 'Ответы скопированы — вставьте в чат агенту';
+  } catch {
+    status.textContent = 'Не удалось скопировать — выделите текст вручную';
+    alert(text);
+  }
+};
+document.getElementById('print').onclick = () => window.print();
+document.getElementById('clear').onclick = () => {
+  if (confirm('Очистить все ответы?')) {
+    localStorage.removeItem(KEY);
+    render();
+    status.textContent = 'Очищено';
+  }
+};
+
+render();
+</script>
+</body>
+</html>

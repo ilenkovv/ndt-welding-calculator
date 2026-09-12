@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Скрипт менеджера</title>
+<link rel="stylesheet" href="./shared.css">
+<style>
+main.single{grid-template-columns:1fr}
+.stage{border:1px solid var(--line);border-radius:10px;padding:14px;margin:0 0 12px;background:#fff}
+.stage h3{margin:0 0 8px}
+.say{background:#eef6ff;border-left:3px solid var(--blue);padding:8px 10px;margin:0 0 10px;border-radius:0 8px 8px 0}
+.field{padding:8px 0;border-bottom:1px solid #e9edf2}
+.field:last-child{border-bottom:0}
+.checkline{display:flex;gap:8px;align-items:flex-start;margin:0 0 8px}
+.checkline input{width:auto;margin-top:3px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.toolbar button{border:0;border-radius:8px;padding:8px 12px;background:var(--blue);color:#fff;font-weight:700;cursor:pointer;font:inherit}
+.toolbar button.secondary{background:#687789}
+</style>
+</head>
+<body>
+<header>
+  <h1>Скрипт менеджера по продажам</h1>
+  <p>Человек: разговорный трек + описания полей + чек-лист после звонка</p>
+  <nav>
+    <a href="./index.html">Обзор</a>
+    <a href="./ndt.html">НК</a>
+    <a href="./welding.html">Сварка</a>
+    <a href="./logistics.html">Логистика</a>
+    <a href="./secretary-bot.html">Робот-секретарь</a>
+    <a class="active" href="./sales-human.html">Менеджер</a>
+  </nav>
+</header>
+<main class="single">
+<section class="card">
+  <div class="badge">CLI: node scripts/sales-human.mjs · --checklist · --json</div>
+  <div class="toolbar">
+    <button type="button" id="btnGuide">Скрипт разговора</button>
+    <button type="button" class="secondary" id="btnCheck">Чек-лист</button>
+    <button type="button" class="secondary" id="btnCopy">Скопировать JSON</button>
+  </div>
+  <div id="out"></div>
+</section>
+</main>
+<script type="module">
+import { FIELD_CATALOG, INTAKE_ORDER, listFields } from '../src/index.mjs';
+
+const INTRO = [
+  'Вы — менеджер по продажам НК / сварки.',
+  'За 5–10 минут соберите данные для предварительного расчёта.',
+  'Не обещайте финальную цену до проверки объёма и НТД.',
+  'Город вносите аккуратно: очистка города сбрасывает логистику.'
+];
+
+const TRACK = [
+  { stage: 'Контакт', say: 'Добрый день! Подготовим предварительный расчёт. Подскажите организацию и контакт на объекте.', fields: ['client', 'contact'] },
+  { stage: 'Локация', say: 'Где объект — город и адрес/площадка? От города зависит логистика.', fields: ['city', 'address'] },
+  { stage: 'Состав работ', say: 'Нужен только контроль, только сварка или комплекс? Что за объект?', fields: ['workType', 'object'] },
+  { stage: 'Объём', say: 'Какой объём: стыки, погонные метры, точки/снимки?', fields: ['joints', 'meters', 'points'] },
+  { stage: 'Геометрия', say: 'Диаметр и толщина? Для металлоконструкций диаметр не нужен.', fields: ['diameter', 'thickness'] },
+  { stage: 'Методы НК', say: 'Какие методы: ВИК, УЗК, РК, ПВК, МК, толщинометрия?', fields: ['methods'] },
+  { stage: 'Условия', say: 'Сроки и доступ к месту работ — стандарт или сложнее?', fields: ['urgency', 'access'] },
+  { stage: 'Логистика', say: 'Транспорт можем поставить автоматически. Сколько человек и дней на объекте?', fields: ['transport', 'people', 'workDays', 'nights'] },
+  { stage: 'Финал', say: 'Есть НТД, марка стали, пропускной режим? Зафиксирую и отправлю предварительный расчёт.', fields: ['comment'] }
+];
+
+const out = document.getElementById('out');
+
+function renderGuide() {
+  let html = INTRO.map((l) => `<p class="hint">• ${l}</p>`).join('');
+  for (const s of TRACK) {
+    html += `<div class="stage"><h3>${s.stage}</h3><div class="say">Сказать: «${s.say}»</div>`;
+    for (const id of s.fields) {
+      const f = FIELD_CATALOG[id];
+      html += `<div class="field">
+        <strong>№${f.num} ${f.label}</strong>
+        <div class="hint">Описание: ${f.description}</div>
+        <div class="hint">Подсказка: ${f.humanTip}</div>
+        <div class="hint">Вопрос: ${f.botAsk}</div>
+        ${f.options ? `<div class="hint">Варианты: ${f.options.map((o) => o.label).join(' / ')}</div>` : ''}
+      </div>`;
+    }
+    html += '</div>';
+  }
+  html += `<div class="stage"><h3>Красные флаги</h3>
+    <p class="hint">• Путают РК и УЗК — уточните «рентген/снимки» vs «ультразвук швов»</p>
+    <p class="hint">• Металлоконструкция + диаметр — диаметр не считается</p>
+    <p class="hint">• Только сварка — не тратьте время на методы НК</p>
+    <p class="hint">• Нет объёма (0 стыков и 0 п.м.) — работы будут 0</p>
+    <p class="hint">• Города нет в базе — логистику оценить вручную</p>
+  </div>`;
+  out.innerHTML = html;
+}
+
+function renderChecklist() {
+  let html = '<div class="stage"><h3>Чек-лист после звонка</h3>';
+  for (const id of INTAKE_ORDER) {
+    const f = FIELD_CATALOG[id];
+    html += `<label class="checkline"><input type="checkbox"><span><strong>№${f.num} ${f.label}</strong> (${f.required ? 'обязательно' : 'по ситуации'})<br><span class="hint">${f.humanTip}</span></span></label>`;
+  }
+  html += `<label class="checkline"><input type="checkbox"><span>Заявка внесена в калькулятор / лабы</span></label>`;
+  html += `<label class="checkline"><input type="checkbox"><span>Логистика по городу проверена</span></label>`;
+  html += `<label class="checkline"><input type="checkbox"><span>Клиенту отправлено предварительное КП</span></label>`;
+  html += '</div>';
+  out.innerHTML = html;
+}
+
+document.getElementById('btnGuide').onclick = renderGuide;
+document.getElementById('btnCheck').onclick = renderChecklist;
+document.getElementById('btnCopy').onclick = async () => {
+  const payload = {
+    role: 'human_sales_manager',
+    intro: INTRO,
+    talkTrack: TRACK,
+    fields: listFields()
+  };
+  const text = JSON.stringify(payload, null, 2);
+  try {
+    await navigator.clipboard.writeText(text);
+    out.innerHTML = `<pre class="hint" style="white-space:pre-wrap">JSON скопирован.\n\n${text}</pre>`;
+  } catch {
+    out.innerHTML = `<pre class="hint" style="white-space:pre-wrap">${text}</pre>`;
+  }
+};
+
+renderGuide();
+</script>
+</body>
+</html>

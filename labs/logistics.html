@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Лаба: логистика</title>
+<link rel="stylesheet" href="./shared.css">
+</head>
+<body>
+<header>
+  <h1>Лаба: логистика из базы</h1>
+  <p>Город / адрес → билеты и отели · у каждого поля — описание · транспорт auto</p>
+  <nav>
+    <a href="./index.html">Обзор</a>
+    <a href="./ndt.html">НК</a>
+    <a href="./welding.html">Сварка</a>
+    <a class="active" href="./logistics.html">Логистика</a>
+    <a href="./secretary-bot.html">Робот-секретарь</a>
+    <a href="./sales-human.html">Менеджер</a>
+  </nav>
+</header>
+<main>
+<section class="card" id="formCard">
+  <div class="badge">База выезда: Москва · цены справочные (усреднённые)</div>
+  <div class="section">
+    <h3>Место и выезд</h3>
+    <div class="grid">
+      <div class="full">
+        <label for="city">№3 Город</label>
+        <input id="city" list="cityList" placeholder="Казань, СПб, Тверь…">
+        <datalist id="cityList"></datalist>
+        <div class="hint" data-field="city">Из базы: расстояние, усреднённые билеты и отель. Очистка города сбрасывает суммы.</div>
+      </div>
+      <div class="full">
+        <label for="address">№3b Адрес / площадка</label>
+        <input id="address" placeholder="улица, площадка">
+        <div class="hint" data-field="address">Уточнение для проезда. Не меняет тариф города. Очистка адреса город не сбрасывает.</div>
+      </div>
+      <div>
+        <label for="transport">№14 Транспорт</label>
+        <select id="transport">
+          <option value="auto" selected>Авто (по расстоянию)</option>
+          <option value="car">Автомобиль</option>
+          <option value="train">Поезд</option>
+          <option value="flight">Самолёт</option>
+          <option value="bus">Автобус</option>
+        </select>
+        <div class="hint" data-field="transport">Auto: ≤200 км авто, ≤900 км поезд, иначе самолёт (если есть в базе).</div>
+      </div>
+      <div>
+        <label for="people">№15b Человек в выезде</label>
+        <input id="people" type="number" min="1" value="2">
+        <div class="hint" data-field="people">Умножает билеты, трансфер и отель.</div>
+      </div>
+      <div>
+        <label for="nights">№15 Ночи проживания</label>
+        <input id="nights" type="number" min="0" placeholder="авто">
+        <div class="hint" data-field="nights">Пусто = авто по дням работ и расстоянию (&gt;80 км).</div>
+      </div>
+      <div>
+        <label for="workDays">№15c Дни работ</label>
+        <input id="workDays" type="number" min="1" value="2">
+        <div class="hint" data-field="workDays">Плановая длительность. Нужна для авто-расчёта ночей.</div>
+      </div>
+    </div>
+    <div class="hint" id="matchHint"></div>
+  </div>
+  <div class="section">
+    <h3>Попадание в базу</h3>
+    <div id="cityInfo" class="note">Город не выбран</div>
+  </div>
+</section>
+<aside class="card result">
+  <h2>Логистика</h2>
+  <div class="price" id="total">0 ₽</div>
+  <div class="row"><span>Транспорт</span><span id="tMode">—</span></div>
+  <div class="row"><span>Билеты (усредн.)</span><span id="tickets">0</span></div>
+  <div class="row"><span>Дорога</span><span id="road">0</span></div>
+  <div class="row"><span>Трансфер</span><span id="transfer">0</span></div>
+  <div class="row"><span>Отель (усредн.)</span><span id="hotel">0</span></div>
+  <div class="row"><span>Ночи</span><span id="nightsOut">0</span></div>
+  <div class="row"><span>Расстояние</span><span id="dist">0 км</span></div>
+  <p class="note" id="reason"></p>
+</aside>
+</main>
+<script type="module">
+import { calculateLogistics, suggestCities, listCities, rub, getField } from '../src/index.mjs';
+
+const el = (id) => document.getElementById(id);
+for (const node of document.querySelectorAll('[data-field]')) {
+  const f = getField(node.getAttribute('data-field'));
+  if (f?.description) node.textContent = f.description;
+}
+
+const dl = el('cityList');
+for (const c of listCities()) {
+  const opt = document.createElement('option');
+  opt.value = c.name;
+  opt.label = `${c.name} · ${c.distanceKm} км`;
+  dl.appendChild(opt);
+}
+
+function run() {
+  const cityQuery = el('city').value;
+  const cleared = !String(cityQuery || '').trim();
+  const nightsRaw = el('nights').value;
+  const r = calculateLogistics({
+    cityQuery,
+    address: el('address').value,
+    transportMode: el('transport').value,
+    people: el('people').value,
+    nights: nightsRaw === '' ? null : nightsRaw,
+    workDays: el('workDays').value,
+    cleared
+  });
+
+  el('total').textContent = rub(r.costs.total);
+  el('tMode').textContent = r.transport.label;
+  el('tickets').textContent = rub(r.costs.tickets);
+  el('road').textContent = rub(r.costs.road);
+  el('transfer').textContent = rub(r.costs.transfer);
+  el('hotel').textContent = rub(r.costs.hotel);
+  el('nightsOut').textContent = String(r.nights);
+  el('dist').textContent = (r.city?.distanceKm ?? 0) + ' км';
+  el('reason').textContent = `${r.transport.reason} · ${r.message}`;
+  el('matchHint').textContent = cleared
+    ? 'Город очищен — суммы сброшены'
+    : (r.matched ? `Найдено: ${r.city.name} (${r.city.region})` : 'Нет в базе');
+  el('matchHint').classList.toggle('warn', !cleared && !r.matched);
+
+  if (r.matched) {
+    const t = r.city.ticketAvgRT;
+    el('cityInfo').innerHTML =
+      `<strong>${r.city.name}</strong> · ${r.city.distanceKm} км<br>` +
+      `Билеты RT: авто ${rub(t.car)}, поезд ${rub(t.train)}, авиа ${rub(t.flight)}, автобус ${rub(t.bus)}<br>` +
+      `Отель: ${rub(r.city.hotelAvgNight)} / ночь / чел.<br>` +
+      `Адрес: ${r.address || '—'}`;
+  } else {
+    const sug = suggestCities(cityQuery, 5).map((c) => c.name).join(', ');
+    el('cityInfo').textContent = cleared ? 'Введите город' : (`Подсказки: ${sug || 'нет'}`);
+  }
+}
+
+el('formCard').addEventListener('input', run);
+el('formCard').addEventListener('change', run);
+el('city').value = 'Казань';
+run();
+</script>
+</body>
+</html>
