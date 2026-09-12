@@ -1,14 +1,16 @@
 {
-  "name": "agent",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "node test-e2e.mjs"
-  },
+  "name": "ndt-welding-calculator",
+  "version": "1.1.0",
+  "description": "Калькулятор НК / сварки: модули по видам работ + логистика из базы городов",
   "type": "module",
-  "keywords": [],
-  "author": "",
+  "scripts": {
+    "test": "npm run test:unit && npm run test:labs",
+    "test:unit": "node tests/unit-runner.mjs",
+    "test:labs": "node tests/labs-smoke.mjs",
+    "test:e2e": "node test-e2e.mjs",
+    "lab": "node scripts/serve-labs.mjs"
+  },
+  "keywords": ["ndt", "welding", "calculator"],
   "license": "ISC",
   "dependencies": {
     "puppeteer-core": "^25.10.0"

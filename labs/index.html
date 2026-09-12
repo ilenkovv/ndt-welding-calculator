@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Лаборатории видов работ</title>
+<link rel="stylesheet" href="./shared.css">
+</head>
+<body>
+<header>
+  <h1>Лаборатории видов работ</h1>
+  <p>Пока виды разделены для глубокой проверки. Позже соединим в единый калькулятор.</p>
+  <nav>
+    <a class="active" href="./index.html">Обзор</a>
+    <a href="./ndt.html">НК</a>
+    <a href="./welding.html">Сварка</a>
+    <a href="./logistics.html">Логистика</a>
+  </nav>
+</header>
+<main style="grid-template-columns:1fr">
+  <section class="card">
+    <h2>Статус модулей</h2>
+    <table class="mini">
+      <thead><tr><th>Вид</th><th>Модуль</th><th>Что проверяем</th><th>Статус</th></tr></thead>
+      <tbody>
+        <tr><td>НК</td><td><code>src/work-types/ndt.mjs</code></td><td>Методы, тарифы, точки, зависимости объекта, роли бригады НК</td><td class="ok">отдельно</td></tr>
+        <tr><td>Сварка</td><td><code>src/work-types/welding.mjs</code></td><td>Стыки/п.м., роли сварщик/помощник, геометрия</td><td class="ok">отдельно</td></tr>
+        <tr><td>Логистика</td><td><code>src/work-types/logistics.mjs</code></td><td>Город/адрес → база, билеты, отели, auto-транспорт</td><td class="ok">отдельно</td></tr>
+        <tr><td>Комплекс</td><td>—</td><td>Склейка НК + сварка + логистика</td><td class="no">позже</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Тесты: <code>npm run test:unit</code> · Лабы: <code>npm run lab</code></p>
+  </section>
+</main>
+</body>
+</html>
