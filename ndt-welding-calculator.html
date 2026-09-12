@@ -6,22 +6,28 @@
 <title>Калькулятор стоимости НК и сварочных работ</title>
 <style>
 :root{
-  --blue:#1463c3;--dark:#18212d;--line:#dce3ec;--bg:#eef3f8;--green:#117a43;--card:#fff;--muted:#637185;--warn:#9a3412;
+  --blue:#1463c3;--dark:#18212d;--line:#dce3ec;--bg:#eef3f8;--green:#117a43;--card:#fff;--muted:#637185;--warn:#9a3412;--num:#1a4f8c;
 }
 *{box-sizing:border-box}
 body{margin:0;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--dark);background:var(--bg)}
 header{background:linear-gradient(135deg,#0f2740,#163a5f);color:#fff;padding:20px 18px}
 header h1{margin:0 0 6px;font-size:1.35rem}
 header p{margin:0;color:#d5e4f5;font-size:.92rem}
-main{max-width:1100px;margin:16px auto;padding:0 12px 28px;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px}
+main{max-width:1100px;margin:16px auto;padding:0 12px 28px;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 2px 10px #1b355012}
 h2{font-size:1.05rem;margin:0 0 12px}
 .section{margin:0 0 18px;padding-top:14px;border-top:1px solid var(--line)}
-.section:first-child{margin-top:0;padding-top:0;border-top:0}
+.section:first-of-type{margin-top:0;padding-top:0;border-top:0}
 .section h3{margin:0 0 10px;font-size:.95rem;color:#243447}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .full{grid-column:1/-1}
 label{display:block;font-weight:600;margin-bottom:5px;font-size:.92rem}
+.num{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:1.55rem;height:1.55rem;margin-right:6px;padding:0 5px;
+  border-radius:999px;background:#e8f1fb;color:var(--num);
+  font-size:.75rem;font-weight:800;vertical-align:middle;
+}
 input,select,textarea{width:100%;padding:10px;border:1px solid #bcc9d8;border-radius:8px;background:#fff;font:inherit}
 textarea{min-height:72px;resize:vertical}
 .hint{font-size:.78rem;color:var(--muted);margin-top:4px}
@@ -30,7 +36,6 @@ textarea{min-height:72px;resize:vertical}
 .check{font-weight:400;border:1px solid var(--line);border-radius:8px;padding:9px;display:flex;gap:8px;align-items:flex-start}
 .check input{width:auto;margin-top:3px}
 .dep-hidden{display:none!important}
-.dep-dim{opacity:.55}
 .result{position:sticky;top:12px;align-self:start}
 .price{font-size:1.85rem;font-weight:800;color:var(--green);margin:4px 0 12px}
 .row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #e9edf2;padding:8px 0;font-size:.92rem}
@@ -40,6 +45,15 @@ button:hover{filter:brightness(.94)}
 button.secondary{background:#687789}
 .note{font-size:.78rem;color:var(--muted);margin-top:12px}
 .badge{display:inline-block;font-size:.72rem;font-weight:700;padding:3px 8px;border-radius:999px;background:#e8f1fb;color:#1a4f8c;margin-bottom:8px}
+.deps-box{
+  background:#f7fafc;border:1px dashed #c5d3e3;border-radius:10px;
+  padding:12px;margin-bottom:14px;font-size:.84rem;
+}
+.deps-box h3{margin:0 0 8px;font-size:.9rem}
+.deps-box ol{margin:0;padding-left:1.2rem}
+.deps-box li{margin:4px 0}
+.deps-box .live{margin-top:10px;padding-top:8px;border-top:1px solid var(--line);color:#243447}
+.deps-box strong{color:var(--num)}
 @media(max-width:850px){
   main{grid-template-columns:1fr}
   .result{position:static}
@@ -56,29 +70,55 @@ button.secondary{background:#687789}
 <section class="card" id="formCard">
   <h2>Параметры</h2>
 
+  <div class="deps-box" id="depsBox">
+    <h3>Карта зависимостей (по номерам полей)</h3>
+    <ol>
+      <li><strong>№4 Тип работ</strong> управляет видимостью <strong>№8</strong> (точки/снимки) и блока <strong>№11 Методы НК</strong>.</li>
+      <li>Если №4 = «Только сварка» → №8 и №11 скрываются; в цене только сварка от <strong>№6–№7</strong>.</li>
+      <li>Если №4 = «Только НК» → цена от <strong>№11</strong> × объём <strong>№6–№8</strong> (сварка = 0).</li>
+      <li>Если №4 = «Сварка + НК» → сумма сварки (<strong>№6–№7</strong>) и НК (<strong>№11 + №6–№8</strong>).</li>
+      <li><strong>№9–№10</strong> дают коэффициенты на всю стоимость работ (не на логистику).</li>
+      <li><strong>№12 × №13</strong> — множитель срочности/доступа; <strong>№14–№15</strong> — логистика отдельно.</li>
+      <li><strong>№1–№3, №5, №16</strong> на цену не влияют (только текст сделки/КП).</li>
+    </ol>
+    <div class="live" id="depsLive">Сейчас: выберите тип работ — подсказка обновится.</div>
+  </div>
+
   <div class="section">
-    <h3>1. Клиент</h3>
+    <h3>A. Клиент</h3>
     <div class="grid">
-      <div><label for="client">Клиент / организация</label><input id="client" placeholder="Наименование"></div>
-      <div><label for="contact">Контакт</label><input id="contact" placeholder="ФИО, телефон"></div>
-      <div class="full"><label for="location">Место работ</label><input id="location" placeholder="Город, объект"></div>
+      <div>
+        <label for="client"><span class="num">1</span>Клиент / организация</label>
+        <input id="client" placeholder="Наименование">
+        <div class="hint">Не влияет на цену</div>
+      </div>
+      <div>
+        <label for="contact"><span class="num">2</span>Контакт</label>
+        <input id="contact" placeholder="ФИО, телефон">
+        <div class="hint">Не влияет на цену</div>
+      </div>
+      <div class="full">
+        <label for="location"><span class="num">3</span>Место работ</label>
+        <input id="location" placeholder="Город, объект">
+        <div class="hint">Не влияет на цену</div>
+      </div>
     </div>
   </div>
 
   <div class="section">
-    <h3>2. Тип работ и объект</h3>
+    <h3>B. Тип работ и объект</h3>
     <div class="grid">
       <div>
-        <label for="workType">Тип работ</label>
+        <label for="workType"><span class="num">4</span>Тип работ</label>
         <select id="workType">
           <option value="ndt">Только НК</option>
           <option value="welding">Только сварка</option>
           <option value="complex">Сварка + НК</option>
         </select>
-        <div class="hint" id="workTypeHint">От типа работ зависят доступные поля ниже.</div>
+        <div class="hint" id="workTypeHint">№4 управляет №8 и №11.</div>
       </div>
       <div>
-        <label for="object">Объект</label>
+        <label for="object"><span class="num">5</span>Объект</label>
         <select id="object">
           <option value="pipe">Трубопровод</option>
           <option value="tank">Резервуар / ёмкость</option>
@@ -86,52 +126,66 @@ button.secondary{background:#687789}
           <option value="vessel">Сосуд / котёл</option>
           <option value="other">Другое</option>
         </select>
-        <div class="hint">На цену не влияет — только для КП.</div>
+        <div class="hint">Не влияет на цену — только для КП</div>
       </div>
     </div>
   </div>
 
   <div class="section" id="volumeSection">
-    <h3>3. Объём работ</h3>
+    <h3>C. Объём работ</h3>
     <div class="grid">
-      <div id="wrapJoints"><label for="joints">Стыки, шт.</label><input id="joints" type="number" min="0" step="1" value="0"></div>
-      <div id="wrapMeters"><label for="meters">Длина шва, п.м.</label><input id="meters" type="number" min="0" step="0.1" value="0"></div>
+      <div id="wrapJoints">
+        <label for="joints"><span class="num">6</span>Стыки, шт.</label>
+        <input id="joints" type="number" min="0" step="1" value="0">
+        <div class="hint">Для сварки и большинства методов НК</div>
+      </div>
+      <div id="wrapMeters">
+        <label for="meters"><span class="num">7</span>Длина шва, п.м.</label>
+        <input id="meters" type="number" min="0" step="0.1" value="0">
+        <div class="hint">Для сварки и методов по п.м.</div>
+      </div>
       <div id="wrapPoints" class="full">
-        <label for="points">Точки / снимки, шт.</label>
+        <label for="points"><span class="num">8</span>Точки / снимки, шт.</label>
         <input id="points" type="number" min="0" step="1" value="0">
-        <div class="hint">Нужны для РК и УЗ-толщинометрии.</div>
+        <div class="hint">Зависит от №4: скрыто при «Только сварка». Нужно для РК и УЗ-толщинометрии (№11).</div>
       </div>
     </div>
   </div>
 
   <div class="section" id="geometrySection">
-    <h3>4. Геометрия (коэффициенты)</h3>
+    <h3>D. Геометрия (коэффициенты)</h3>
     <div class="grid">
-      <div id="wrapDiameter"><label for="diameter">Диаметр, мм</label><input id="diameter" type="number" min="0" value="108"></div>
-      <div id="wrapThickness"><label for="thickness">Толщина стенки, мм</label><input id="thickness" type="number" min="0" step="0.1" value="6"></div>
+      <div id="wrapDiameter">
+        <label for="diameter"><span class="num">9</span>Диаметр, мм</label>
+        <input id="diameter" type="number" min="0" value="108">
+      </div>
+      <div id="wrapThickness">
+        <label for="thickness"><span class="num">10</span>Толщина стенки, мм</label>
+        <input id="thickness" type="number" min="0" step="0.1" value="6">
+      </div>
     </div>
-    <div class="hint">Коэффициенты умножают стоимость работ (не логистику).</div>
+    <div class="hint">№9 и №10 умножают стоимость работ; на логистику (№14–№15) не влияют.</div>
   </div>
 
   <div class="section" id="methodsSection">
-    <h3>5. Методы НК</h3>
-    <div class="badge" id="methodsBadge">Активны для НК</div>
+    <h3>E. Методы НК</h3>
+    <div class="badge" id="methodsBadge">№11 — зависят от №4</div>
     <div class="checks" id="methodsList">
-      <label class="check"><input class="method" type="checkbox" value="vik">ВИК</label>
-      <label class="check"><input class="method" type="checkbox" value="uzk">УЗК</label>
-      <label class="check"><input class="method" type="checkbox" value="rk">РК</label>
-      <label class="check"><input class="method" type="checkbox" value="pvk">ПВК</label>
-      <label class="check"><input class="method" type="checkbox" value="mk">МК</label>
-      <label class="check"><input class="method" type="checkbox" value="thick">УЗ толщинометрия</label>
+      <label class="check"><input class="method" type="checkbox" value="vik"><span class="num">11a</span>ВИК</label>
+      <label class="check"><input class="method" type="checkbox" value="uzk"><span class="num">11b</span>УЗК</label>
+      <label class="check"><input class="method" type="checkbox" value="rk"><span class="num">11c</span>РК</label>
+      <label class="check"><input class="method" type="checkbox" value="pvk"><span class="num">11d</span>ПВК</label>
+      <label class="check"><input class="method" type="checkbox" value="mk"><span class="num">11e</span>МК</label>
+      <label class="check"><input class="method" type="checkbox" value="thick"><span class="num">11f</span>УЗ толщинометрия</label>
     </div>
-    <div class="hint" id="methodsHint">Выберите один или несколько методов.</div>
+    <div class="hint" id="methodsHint">№11a/b/d/e → объём №6–№7; №11c/11f → ещё №8.</div>
   </div>
 
   <div class="section">
-    <h3>6. Условия и логистика</h3>
+    <h3>F. Условия и логистика</h3>
     <div class="grid">
       <div>
-        <label for="urgency">Срочность</label>
+        <label for="urgency"><span class="num">12</span>Срочность</label>
         <select id="urgency">
           <option value="1">Стандарт</option>
           <option value="1.3">Срочно (+30%)</option>
@@ -139,7 +193,7 @@ button.secondary{background:#687789}
         </select>
       </div>
       <div>
-        <label for="access">Доступ</label>
+        <label for="access"><span class="num">13</span>Доступ</label>
         <select id="access">
           <option value="1">Нормальный</option>
           <option value="1.15">Стеснённый (+15%)</option>
@@ -148,17 +202,18 @@ button.secondary{background:#687789}
         </select>
       </div>
       <div>
-        <label for="distance">Расстояние от базы, км</label>
+        <label for="distance"><span class="num">14</span>Расстояние от базы, км</label>
         <input id="distance" type="number" min="0" value="0">
-        <div class="hint">Первые 30 км бесплатно, далее 35 ₽/км.</div>
+        <div class="hint">Первые 30 км бесплатно, далее 35 ₽/км</div>
       </div>
       <div>
-        <label for="travel">Командировка / проживание, ₽</label>
+        <label for="travel"><span class="num">15</span>Командировка / проживание, ₽</label>
         <input id="travel" type="number" min="0" value="0">
       </div>
       <div class="full">
-        <label for="comment">Комментарий</label>
+        <label for="comment"><span class="num">16</span>Комментарий</label>
         <textarea id="comment" placeholder="Марка стали, НТД, график, особенности"></textarea>
+        <div class="hint">Не влияет на цену</div>
       </div>
     </div>
   </div>
@@ -168,15 +223,15 @@ button.secondary{background:#687789}
   <h2>Итог</h2>
   <div class="price" id="total">0 ₽</div>
   <div class="row"><span>Работы</span><span id="workSum">0 ₽</span></div>
-  <div class="row" id="ndtRow"><span>в т.ч. НК</span><span id="ndtSum">0 ₽</span></div>
-  <div class="row" id="weldRow"><span>в т.ч. сварка</span><span id="weldSum">0 ₽</span></div>
-  <div class="row"><span>Коэфф. толщины</span><span id="thicknessK">× 1,00</span></div>
-  <div class="row"><span>Коэфф. диаметра</span><span id="diameterK">× 1,00</span></div>
-  <div class="row"><span>Срочность × доступ</span><span id="conditionsK">× 1,00</span></div>
-  <div class="row"><span>Логистика</span><span id="logistics">0 ₽</span></div>
+  <div class="row" id="ndtRow"><span>в т.ч. НК (№11)</span><span id="ndtSum">0 ₽</span></div>
+  <div class="row" id="weldRow"><span>в т.ч. сварка (№6–№7)</span><span id="weldSum">0 ₽</span></div>
+  <div class="row"><span>Коэфф. толщины (№10)</span><span id="thicknessK">× 1,00</span></div>
+  <div class="row"><span>Коэфф. диаметра (№9)</span><span id="diameterK">× 1,00</span></div>
+  <div class="row"><span>№12 × №13</span><span id="conditionsK">× 1,00</span></div>
+  <div class="row"><span>Логистика (№14–№15)</span><span id="logistics">0 ₽</span></div>
   <button type="button" id="copy">Скопировать для сделки</button>
   <button type="button" class="secondary" id="proposal">КП для печати</button>
-  <p class="note">Предварительный расчёт. Перед КП проверьте НТД, объём и логистику.</p>
+  <p class="note">Формула: (НК + сварка) × №10 × №9 × (№12×№13) + логистика.</p>
 </aside>
 </main>
 
@@ -202,7 +257,8 @@ const el = (id) => document.getElementById(id);
 
 function safeNum(v) {
   const x = typeof v === 'number' ? v : parseFloat(String(v).replace(',', '.'));
-  return Number.isFinite(x) && x > 0 ? x : (Number.isFinite(x) && x === 0 ? 0 : 0);
+  if (!Number.isFinite(x) || x < 0) return 0;
+  return x;
 }
 function num(id) {
   const node = el(id);
@@ -245,13 +301,23 @@ function checkedMethods() {
     .filter((k) => Object.prototype.hasOwnProperty.call(tariffs, k));
 }
 
-/** Зависимости UI от типа работ */
+function updateDepsLive(workType) {
+  const live = el('depsLive');
+  if (workType === 'welding') {
+    live.innerHTML = '<strong>Сейчас №4 = Только сварка:</strong> скрыты №8 и №11. В цене: сварка от №6–№7 × №9 × №10 × (№12×№13) + №14–№15.';
+  } else if (workType === 'complex') {
+    live.innerHTML = '<strong>Сейчас №4 = Сварка + НК:</strong> видны №8 и №11. В цене: (сварка №6–№7 + НК №11×№6–№8) × №9 × №10 × (№12×№13) + №14–№15.';
+  } else {
+    live.innerHTML = '<strong>Сейчас №4 = Только НК:</strong> видны №8 и №11. В цене: НК (№11 × №6–№8) × №9 × №10 × (№12×№13) + №14–№15. Сварка = 0.';
+  }
+}
+
+/** Зависимости UI от типа работ (№4) */
 function syncDependencies(workType) {
   const isNdt = workType === 'ndt';
   const isWeld = workType === 'welding';
   const isComplex = workType === 'complex';
 
-  // Методы НК: только для ndt/complex
   el('methodsSection').classList.toggle('dep-hidden', isWeld);
   el('wrapPoints').classList.toggle('dep-hidden', isWeld);
   document.querySelectorAll('.method').forEach((input) => {
@@ -260,20 +326,20 @@ function syncDependencies(workType) {
   });
 
   el('methodsBadge').textContent = isWeld
-    ? 'Скрыты: тип «только сварка»'
+    ? '№11 скрыт: №4 = только сварка'
     : isComplex
-      ? 'Активны: сварка + НК'
-      : 'Активны: только НК';
+      ? '№11 активен: №4 = сварка + НК'
+      : '№11 активен: №4 = только НК';
 
   el('workTypeHint').textContent = isWeld
-    ? 'Считается только сварка по стыкам и п.м. Методы НК скрыты.'
+    ? '№4 скрыл №8 и №11. Считаются №6–№7.'
     : isComplex
-      ? 'Считаются сварка и выбранные методы НК.'
-      : 'Считаются только выбранные методы НК.';
+      ? '№4 открыл №8 и №11. Считаются сварка + НК.'
+      : '№4 открыл №8 и №11. Считается только НК.';
 
-  // Строки итога
   el('ndtRow').hidden = isWeld;
   el('weldRow').hidden = isNdt;
+  updateDepsLive(workType);
 }
 
 function setHint(text, warn) {
@@ -331,25 +397,24 @@ function calculate() {
   el('conditionsK').textContent = '× ' + kc.toFixed(2).replace('.', ',');
   el('logistics').textContent = rub(logistics);
 
-  // Подсказки зависимостей
   if (workType === 'welding') {
     setHint(
       weldBase === 0
-        ? 'Укажите стыки и/или п.м. — иначе стоимость работ будет 0.'
-        : 'Методы НК не участвуют в расчёте при типе «только сварка».',
+        ? 'Заполните №6 и/или №7 — иначе стоимость работ = 0.'
+        : '№11 не участвует: №4 = только сварка.',
       weldBase === 0
     );
   } else if (methodNames.length === 0) {
     setHint(
       workType === 'ndt'
-        ? 'Выберите метод НК — иначе в работах будет 0 (останется только логистика).'
-        : 'Выберите методы НК или оставьте только сварку по объёму стыков/п.м.',
+        ? 'Выберите метод в №11 — иначе работы = 0 (останется логистика №14–№15).'
+        : 'Выберите №11 или оставьте только сварку по №6–№7.',
       true
     );
   } else if (ndtBase === 0) {
-    setHint('Методы выбраны, но объём 0: для ВИК/УЗК/ПВК/МК нужны стыки или п.м.; для РК — снимки; для толщинометрии — точки.', true);
+    setHint('№11 выбран, но объём 0: для 11a/b/d/e нужны №6 или №7; для 11c/11f — №8.', true);
   } else {
-    setHint('Расчёт обновляется при каждом изменении поля.', false);
+    setHint('№11a/b/d/e ← №6–№7; №11c/11f ← ещё №8. Расчёт обновляется сразу.', false);
   }
 
   return {
@@ -362,27 +427,22 @@ function calculate() {
 function dataText() {
   const r = calculate();
   return `РАСЧЁТ НК И СВАРОЧНЫХ РАБОТ
-Клиент: ${el('client').value || '—'}
-Контакт: ${el('contact').value || '—'}
-Тип работ: ${el('workType').selectedOptions[0].text}
-Объект: ${el('object').selectedOptions[0].text}
-Место: ${el('location').value || '—'}
+Клиент (№1): ${el('client').value || '—'}
+Контакт (№2): ${el('contact').value || '—'}
+Тип работ (№4): ${el('workType').selectedOptions[0].text}
+Объект (№5): ${el('object').selectedOptions[0].text}
+Место (№3): ${el('location').value || '—'}
 Состав: ${r.methods}
-Объём: ${num('joints')} стыков; ${num('meters')} п.м.; ${num('points')} точек/снимков
-Геометрия: Ø ${num('diameter')} мм; стенка ${num('thickness')} мм
-Коэфф.: толщина ×${r.kt.toFixed(2)}; диаметр ×${r.kd.toFixed(2)}; условия ×${r.kc.toFixed(2)}
-Логистика: ${rub(r.logistics)}
+Объём: №6=${num('joints')} стыков; №7=${num('meters')} п.м.; №8=${num('points')} точек/снимков
+Геометрия: №9 Ø ${num('diameter')} мм; №10 стенка ${num('thickness')} мм
+Коэфф.: №10 ×${r.kt.toFixed(2)}; №9 ×${r.kd.toFixed(2)}; №12×№13 ×${r.kc.toFixed(2)}
+Логистика (№14–№15): ${rub(r.logistics)}
 Итого: ${rub(r.total)}
-Комментарий: ${el('comment').value || '—'}`;
+Комментарий (№16): ${el('comment').value || '—'}`;
 }
 
-// Живой пересчёт на любые изменения
-function bindLiveCalc() {
-  const root = el('formCard');
-  root.addEventListener('input', calculate);
-  root.addEventListener('change', calculate);
-}
-bindLiveCalc();
+el('formCard').addEventListener('input', calculate);
+el('formCard').addEventListener('change', calculate);
 
 let copyTimer = null;
 el('copy').addEventListener('click', async () => {
