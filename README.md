@@ -19,7 +19,7 @@
 
 ```bash
 npm install
-node test-e2e.mjs
+npm test
 ```
 
-Нужны Google Chrome и `puppeteer-core`.
+Проверки (Puppeteer + Chrome): матрица зависимостей объектов, тип работ, формулы, логистика, РК/точки, игнор диаметра для металлоконструкций. Отчёт и скриншоты — в `test-artifacts/`.
